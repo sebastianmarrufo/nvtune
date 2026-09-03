@@ -23,6 +23,15 @@ tool can only touch the registers it's meant to. Usermode never supplies a
 physical address -- it passes a PCI bus/device/function, and the driver reads
 BAR0 out of config space itself and refuses non-NVIDIA-display devices.
 
+# Brief Usage Guide
+
+Timings depend on current frequency which depends on pstate. For best experience, use 
+some form of boost lock. Otherwise, any pstate changes will reset timings/show 
+idle timings.
+
+.\nvtune.exe dump 
+.\nvtune.exe set RC=xx RAS=yy etc.
+
 
 ## Building
 
