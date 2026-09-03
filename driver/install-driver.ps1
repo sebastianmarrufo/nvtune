@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Sebastian Marrufo
+
 <#
 .SYNOPSIS
     Test-sign, install, start, stop and remove nvtunedrv.

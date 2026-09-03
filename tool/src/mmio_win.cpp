@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sebastian Marrufo
+
 // Windows BAR0 backend.
 //
 // Windows has no userspace MMIO path -- no /dev/mem, no equivalent of mmapping

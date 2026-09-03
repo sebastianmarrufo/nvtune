@@ -29,3 +29,18 @@ BAR0 out of config space itself and refuses non-NVIDIA-display devices.
 - **tool** --  See `tool/README.md`.
 - **driver** --  See `driver/README.md`.
 
+
+## License
+
+nvtune is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the [GNU General Public License](LICENSE) for details.
+
+Every source file carries an `SPDX-License-Identifier: GPL-3.0-or-later` tag, so
+the terms travel with the file if it is copied out of the tree.
+

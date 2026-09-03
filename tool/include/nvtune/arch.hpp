@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sebastian Marrufo
+
 // Architecture identification and FBPA aperture geometry.
 //
 // Rather than carrying an ever-stale PCI device-ID table, the chip identifies

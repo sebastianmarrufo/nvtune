@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sebastian Marrufo
+
 // Enumerate NVIDIA GPUs (Windows, via SetupAPI).
 
 #pragma once

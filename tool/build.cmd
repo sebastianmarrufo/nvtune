@@ -1,4 +1,6 @@
 @echo off
+REM SPDX-License-Identifier: GPL-3.0-or-later
+REM Copyright (C) 2026 Sebastian Marrufo
 REM ===================================================================
 REM  build.cmd -- compile nvtune.exe with cl.exe, no CMake required.
 REM

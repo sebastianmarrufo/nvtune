@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Sebastian Marrufo
+
 <#
 .SYNOPSIS
     Test-sign nvtunedrv.sys on a build machine and package it for a *different*

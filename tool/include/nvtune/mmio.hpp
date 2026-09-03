@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sebastian Marrufo
+
 // BAR0 MMIO access.
 //
 // Register access goes through `volatile std::uint32_t*`, which the compiler
