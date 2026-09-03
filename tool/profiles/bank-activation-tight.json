@@ -1,0 +1,6 @@
+{
+  "name": "bank-activation-tight",
+  "description": "Tightens the two bank-activation limits (FAW, RRD) that gate random-access throughput. These are known-good aggressive values for GDDR5X Pascal.",
+  "applies_to": "GDDR5X Pascal (GTX 1080, 1080 Ti, Titan X Pascal, Titan Xp). Harmless to try elsewhere; usually a no-op on GDDR5.",
+  "fields": { "FAW": 16, "RRD": 4 }
+}

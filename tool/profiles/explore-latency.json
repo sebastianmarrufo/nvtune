@@ -1,0 +1,12 @@
+{
+  "name": "explore-latency",
+  "description": "Template only. Copy this, fill in values relative to YOUR card's stock readings from 'nvtune dump', and step one field at a time. Values below are deliberately absent of numbers you should not blindly copy.",
+  "applies_to": "nothing as written - this is a worked example of the primary latency knobs",
+  "notes": [
+    "Order of impact for random-access workloads: FAW, RRD, RC, RP, RAS, then RD_RCD/CL.",
+    "Order of impact for streaming/bandwidth workloads: CCDS, CCDL, W2R_BUS, R2W_BUS, WR.",
+    "REFRESH raises the refresh interval, which reclaims bus time but increases retention risk; it is temperature dependent and a bad idea on a cold-plated card running hot VRAM.",
+    "Change one field, benchmark, revert, repeat. Two at once tells you nothing."
+  ],
+  "fields": {}
+}

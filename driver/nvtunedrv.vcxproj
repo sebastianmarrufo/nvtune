@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    nvtunedrv - KMDF-free WDM driver project for the WDK integrated with
+    Visual Studio 2022/2026.
+
+    Build from a Developer prompt, forcing x64 (this is the whole fix for the
+    32-bit compile that produced the C4305 / negative-subscript errors):
+
+        msbuild nvtunedrv.vcxproj /p:Configuration=Release /p:Platform=x64
+
+    or open it in Visual Studio, set the configuration selector to
+    "Release | x64", and Build.
+  -->
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B7A3F2E1-9C4D-4E8A-B1F6-2D5C7A9E0F31}</ProjectGuid>
+    <RootNamespace>nvtunedrv</RootNamespace>
+    <!-- Latest installed WDK/SDK; override on the command line if needed. -->
+    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)'==''">$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+    <TargetVersion>Windows10</TargetVersion>
+    <!-- No KMDF: this is a plain WDM driver. -->
+    <DriverType>WDM</DriverType>
+    <ConfigurationType>Driver</ConfigurationType>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+  <PropertyGroup Label="Configuration">
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+  <PropertyGroup>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>nvtunedrv</TargetName>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <!-- Our headers live in .\include -->
+      <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>POOL_NX_OPTIN=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!-- Compile as C, not C++. -->
+      <CompileAs>CompileAsC</CompileAs>
+      <!-- Pin the C dialect. Some SDK 10.0.26100+/28000 installs default cl to
+           /std:c17, which changes a few km header code paths; C11 is what the
+           WDK headers are validated against. -->
+      <LanguageStandard_C>stdc11</LanguageStandard_C>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(DDK_LIB_PATH)wdmsec.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <ClCompile Include="nvtunedrv.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\nvtunedrv_ioctl.h" />
+    <ClInclude Include="include\nvtune_ranges.h" />
+  </ItemGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

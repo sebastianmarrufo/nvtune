@@ -1,0 +1,13 @@
+# build outputs
+build/
+*.exe
+*.obj
+*.o
+*.lib
+*.sys
+*.pdb
+x64/
+Debug/
+Release/
+*.cer
+*.pfx

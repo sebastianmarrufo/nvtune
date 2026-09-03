@@ -1,0 +1,12 @@
+* text=auto
+*.c    text eol=crlf
+*.h    text eol=crlf
+*.cpp  text eol=crlf
+*.hpp  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+*.vcxproj text eol=crlf
+*.sh   text eol=lf
+*.py   text eol=lf
+*.rom  binary
+*.amx  binary
