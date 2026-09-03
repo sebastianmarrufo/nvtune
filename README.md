@@ -10,7 +10,6 @@ it requires.
 nvtune/
 ├─ tool/      the usermode program (nvtune.exe) -- C++17
 ├─ driver/    the kernel driver (nvtunedrv.sys) -- C / WDK
-└─ docs/      reference shared by both
 ```
 
 **`tool/`** is the command-line program. It never touches hardware directly --
