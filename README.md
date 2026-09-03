@@ -1,7 +1,8 @@
 # nvtune
 
 Windows tool for reading and tuning NVIDIA GPU framebuffer (FBPA) memory
-timings and clocks.
+timings and clocks. Works on Pascal and earlier, newer generations restrict 
+changes.
 
 The repository contains two components, the actual tuning tool, and the driver
 it requires.
