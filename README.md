@@ -26,8 +26,6 @@ BAR0 out of config space itself and refuses non-NVIDIA-display devices.
 
 ## Building
 
-The two halves build with different toolchains and are independent:
-
-- **tool** -- CMake or MSVC. See `tool/README.md`.
-- **driver** -- the WDK / EWDK via MSBuild. See `driver/README.md`.
+- **tool** --  See `tool/README.md`.
+- **driver** --  See `driver/README.md`.
 
