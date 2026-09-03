@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sebastian Marrufo
+
 // Clock-tree readout for Fermi..Pascal.
 //
 // The clock domains on these parts are driven by PLLs in the PBUS/PCLOCK

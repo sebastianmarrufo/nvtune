@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sebastian Marrufo
+
 // Thin platform shims so cli.cpp stays free of #ifdef.
 
 #pragma once

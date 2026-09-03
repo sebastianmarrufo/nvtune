@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sebastian Marrufo
+
 // Windows PCI enumeration.
 //
 // SetupAPI gives us the display-class devices, their hardware IDs (which carry

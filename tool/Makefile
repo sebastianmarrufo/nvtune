@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Sebastian Marrufo
+
 # nvtune tool -- mingw-w64 cross-build convenience.
 #
 # Produces a Windows PE binary. This is NOT a Linux build of nvtune (there is

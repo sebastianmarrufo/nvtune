@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sebastian Marrufo
+
 // A deliberately small JSON subset, so the tool has zero dependencies.
 //
 // Enough to read the backup format and profile files this tool writes, plus

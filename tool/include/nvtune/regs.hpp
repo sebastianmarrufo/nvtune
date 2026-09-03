@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sebastian Marrufo
+
 // FBPA memory-controller register / bitfield definitions.
 //
 // Field layouts are transcribed from NVIDIA's published VBIOS Memory Tweak

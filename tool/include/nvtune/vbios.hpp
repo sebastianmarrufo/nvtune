@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sebastian Marrufo
+
 // VBIOS Memory Tweak Table reader.
 //
 // The runtime FBPA registers hold whatever the driver last programmed for the

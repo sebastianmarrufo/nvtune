@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Sebastian Marrufo
+
 cmake_minimum_required(VERSION 3.20)
 project(nvtune LANGUAGES CXX)
 

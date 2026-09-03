@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sebastian Marrufo
+
 // Device abstraction: bind a PCI GPU to an arch layout and a register map.
 
 #pragma once

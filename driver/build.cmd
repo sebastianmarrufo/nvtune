@@ -1,4 +1,6 @@
 @echo off
+REM SPDX-License-Identifier: GPL-3.0-or-later
+REM Copyright (C) 2026 Sebastian Marrufo
 REM ---------------------------------------------------------------------------
 REM  Build nvtunedrv.sys.
 REM
