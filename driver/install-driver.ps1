@@ -155,7 +155,7 @@ function Do-Install {
     }
 
     Write-Host "Creating service..."
-    & sc.exe create $ServiceName type= kernel start= boot `
+    & sc.exe create $ServiceName type= kernel start= auto `
         binPath= $full DisplayName= "nvtune BAR0 accessor"
     if ($LASTEXITCODE -ne 0) { throw "sc create failed." }
 
