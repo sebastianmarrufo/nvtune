@@ -63,13 +63,11 @@ Signing for a different machine:
 sign-for-target.ps1
 ```
 Deployable package will be made in a deploy folder, copy the folder to the target machine
-and run 
-```
-.\install-on-target.ps1 -EnableTestSigning
-```
-(reboot)
-```
-.\install-on-target.ps1 -Install
-```
+and run install-on-target.bat
+
+The first run will enable test signing if not already enabled, reboot and run the bat file again 
+to install the driver. If test signing was already enabled, then it will just install the driver 
+immediately. To uninstall, run the bat again.
+
 
 
