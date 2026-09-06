@@ -168,11 +168,14 @@ param(
     [switch]$EnableTestSigning,
     [switch]$Install,
     [switch]$All,
-    [string]$Sys  = (Join-Path $PSScriptRoot "nvtunedrv.sys"),
-    [string]$Cer  = (Join-Path $PSScriptRoot "nvtunedrv-cert.cer"),
+    [string]$Sys  = "",
+    [string]$Cer  = "",
     [string]$ServiceName = "nvtunedrv"
 )
 $ErrorActionPreference = "Stop"
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $Sys) { $Sys = Join-Path $ScriptDir "nvtunedrv.sys" }
+if (-not $Cer) { $Cer = Join-Path $ScriptDir "nvtunedrv-cert.cer" }
 
 function Assert-Elevated {
     $id = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -185,9 +188,15 @@ function Assert-Elevated {
 function Trust-Cert {
     Assert-Elevated
     if (-not (Test-Path $Cer)) { throw "certificate not found: $Cer" }
-    foreach ($store in @("Root","TrustedPublisher")) {
-        Import-Certificate -FilePath $Cer -CertStoreLocation "Cert:\LocalMachine\$store" | Out-Null
-        Write-Host "  trusted in LocalMachine\$store"
+    $cert = New-Object Security.Cryptography.X509Certificates.X509Certificate2
+    $cert.Import((Resolve-Path $Cer).Path)
+    foreach ($name in @("Root","TrustedPublisher")) {
+        $store = New-Object Security.Cryptography.X509Certificates.X509Store($name, "LocalMachine")
+        try {
+            $store.Open("ReadWrite")
+            $store.Add($cert)
+        } finally { $store.Close() }
+        Write-Host "  trusted in LocalMachine\$name"
     }
 }
 

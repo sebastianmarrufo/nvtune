@@ -30,7 +30,8 @@
     <RootNamespace>nvtunedrv</RootNamespace>
     <!-- Latest installed WDK/SDK; override on the command line if needed. -->
     <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)'==''">$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
-    <TargetVersion>Windows10</TargetVersion>
+    <!-- Target the oldest supported kernel, including its GS cookie startup. -->
+    <TargetVersion>Windows7</TargetVersion>
     <!-- No KMDF: this is a plain WDM driver. -->
     <DriverType>WDM</DriverType>
     <ConfigurationType>Driver</ConfigurationType>
@@ -58,7 +59,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <PreprocessorDefinitions>POOL_NX_OPTIN=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
       <!-- Compile as C, not C++. -->
       <CompileAs>CompileAsC</CompileAs>
       <!-- Pin the C dialect. Some SDK 10.0.26100+/28000 installs default cl to

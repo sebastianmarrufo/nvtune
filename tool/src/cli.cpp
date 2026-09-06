@@ -61,6 +61,8 @@ struct Options {
     std::optional<unsigned>  fbpa;
     bool     all_fbpa = false;
     bool     force = false;
+    bool     dry_run = false;
+    bool     commit = false;
     bool     raw = false;
     bool     optional_regs = false;
     bool     full = false;
@@ -78,10 +80,12 @@ struct Options {
     bool yes = false;
 };
 
-[[noreturn]] void die(const std::string& msg) {
-    err(msg);
-    std::exit(2);
-}
+class UsageError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+};
+
+[[noreturn]] void die(const std::string& msg) { throw UsageError(msg); }
 
 std::uint32_t parse_u32(const std::string& s) {
     try {
@@ -117,6 +121,8 @@ Options parse_options(const std::vector<std::string>& args) {
         else if (a == "--fbpa")                o.fbpa = parse_u32(value("--fbpa"));
         else if (a == "--all-fbpa")            o.all_fbpa = true;
         else if (a == "--force")               o.force = true;
+        else if (a == "--dry-run")             o.dry_run = true;
+        else if (a == "--commit")              o.commit = true;
         else if (a == "--raw")                 o.raw = true;
         else if (a == "--optional")            o.optional_regs = true;
         else if (a == "--full")                o.full = true;
@@ -140,22 +146,21 @@ Options parse_options(const std::vector<std::string>& args) {
 
 // ------------------------------------------------------------ device helpers
 
-std::vector<std::unique_ptr<Gpu>> open_targets(const Options& o, bool writable) {
+std::vector<std::unique_ptr<Gpu>> open_targets(const Options& o, bool writable,
+                                               bool require_all = false) {
     std::vector<PciDevice> devs;
     if (o.devices.empty()) {
         devs = enumerate_gpus();
         if (devs.empty()) {
-            err("no NVIDIA display devices found "
-                "(looked at the PnP display class)");
-            std::exit(1);
+            throw MmioError("no NVIDIA display devices found "
+                            "(looked at the PnP display class)");
         }
     } else {
         for (const std::string& s : o.devices) {
             try {
                 devs.push_back(find(s));
             } catch (const std::exception& e) {
-                err(e.what());
-                std::exit(1);
+                throw MmioError(e.what());
             }
         }
     }
@@ -166,12 +171,13 @@ std::vector<std::unique_ptr<Gpu>> open_targets(const Options& o, bool writable) 
         try {
             g->open();
         } catch (const MmioError& e) {
+            if (require_all) throw MmioError(d.slot + ": " + e.what());
             err(d.slot + ": " + e.what());
             continue;
         }
         gpus.push_back(std::move(g));
     }
-    if (gpus.empty()) std::exit(1);
+    if (gpus.empty()) throw MmioError("could not open any requested GPU");
     return gpus;
 }
 
@@ -239,7 +245,7 @@ std::string scope_label(Scope s) {
 }
 
 // Returns true if any warning was emitted.
-bool print_ops(const std::vector<WriteOp>& ops) {
+bool print_ops(const std::vector<WriteOp>& ops, bool dry_run) {
     bool warned = false;
     for (const WriteOp& op : ops) {
         if (!op.dirty()) {
@@ -249,7 +255,7 @@ bool print_ops(const std::vector<WriteOp>& ops) {
         }
         std::cout << "  " << op.reg->name << " @" << hex(op.offset, 6) << "  "
                   << hex(op.old_word, 8) << " -> " << hex(op.new_word, 8)
-                  << "  [write]\n";
+                  << (dry_run ? "  [would write]\n" : "  [write]\n");
         for (const FieldChange& c : op.changes) {
             std::cout << "      " << std::left << std::setw(12) << c.name
                       << std::right << std::setw(6) << c.old_value << " -> "
@@ -439,7 +445,7 @@ int cmd_get(const Options& o) {
 int do_set(const Options& o, const Assignments& assignments) {
     need_root();
     int rc = 0;
-    for (auto& g : open_targets(o, true)) {
+    for (auto& g : open_targets(o, !o.dry_run, o.dry_run)) {
         const Arch& a = g->arch();
         std::cout << g->dev().slot << "  " << a.codename << " (" << a.family
                   << ")\n";
@@ -448,7 +454,11 @@ int do_set(const Options& o, const Assignments& assignments) {
         for (Scope s : scopes_for(*g, o)) {
             std::cout << "  [" << scope_label(s) << "]\n";
             std::vector<WriteOp> ops = g->plan(assignments, s);
-            const bool warned = print_ops(ops);
+            const bool warned = print_ops(ops, o.dry_run);
+            // A preview must never request write access, create a backup, or
+            // commit -- even when --force is also present. Keep warnings in
+            // successful preview output so callers can review them first.
+            if (o.dry_run) continue;
             if (warned && !o.force) {
                 err("refusing to write with warnings outstanding; re-run with "
                     "--force if you mean it");
@@ -464,9 +474,13 @@ int do_set(const Options& o, const Assignments& assignments) {
             }
             if (problems.empty()) std::cout << "      applied and verified\n";
         }
-        std::cout << "  reminder: the driver reprograms these on p-state "
-                     "changes. Use 'nvtune daemon' to hold them.\n";
+        if (!o.dry_run) {
+            std::cout << "  reminder: the driver reprograms these on p-state "
+                         "changes. Use 'nvtune daemon' to hold them.\n";
+        }
     }
+    if (o.dry_run && rc == 0)
+        std::cout << "dry run complete: no registers written\n";
     return rc;
 }
 
@@ -885,7 +899,7 @@ commands:
   fields                    every tunable parameter, register, bit range, limits
   dump                      decode current timings
   get FIELD...              read specific fields
-  set FIELD=VALUE...        write fields
+  set FIELD=VALUE...        write fields (add --dry-run to preview)
   save                      snapshot all timing registers to JSON
   restore                   write a snapshot back
   apply PROFILE.json        apply a JSON profile
@@ -902,6 +916,8 @@ common options:
       --fbpa N          target one partition instead of the broadcast aperture
       --all-fbpa        target every active partition individually
       --force           write even if range checks complain
+      --dry-run         preview set/apply using read-only access; no writes
+      --commit          explicitly commit set/apply/restore (the default)
   -o, --output PATH     save destination
   -i, --input PATH      restore source
 
@@ -910,6 +926,8 @@ daemon options:    --profile PATH  --interval SECONDS  -v/--verbose
 probe options:     --start OFF  --length BYTES  --watch SECONDS
 vbios options:     --rom FILE  --prom  --full  --columns A,B,C
 
+--dry-run and --commit cannot be combined. Preview wrappers must always pass
+--dry-run explicitly; older versions reject this flag before opening a GPU.
 Writing to memory-controller registers can hang the machine and corrupt VRAM.
 A first write snapshots stock values; use 'restore' to roll back.
 )";
@@ -938,6 +956,12 @@ int main(int argc, char** argv) {
 
     try {
         const Options o = parse_options(args);
+        if (o.dry_run && o.commit)
+            die("--dry-run and --commit cannot be combined");
+        if (o.dry_run && cmd != "set" && cmd != "apply")
+            die("--dry-run is supported only for set and apply");
+        if (o.commit && cmd != "set" && cmd != "apply" && cmd != "restore")
+            die("--commit is supported only for set, apply and restore");
         if (cmd == "list")    return cmd_list(o);
         if (cmd == "fields")  return cmd_fields(o);
         if (cmd == "dump")    return cmd_dump(o);
@@ -954,6 +978,9 @@ int main(int argc, char** argv) {
         if (cmd == "vbios")   return cmd_vbios(o);
         err("unknown command '" + cmd + "'");
         usage();
+        return 2;
+    } catch (const UsageError& e) {
+        err(e.what());
         return 2;
     } catch (const MmioError& e) {
         err(e.what());
