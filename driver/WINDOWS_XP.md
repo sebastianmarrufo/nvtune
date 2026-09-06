@@ -51,9 +51,12 @@ actually loading the driver and exercising its IOCTL contract on XP.
 
 ## Install on XP x64
 
-Put the XP build in a dedicated folder under the filename `nvtunedrv.sys`,
-beside `install-on-xp.cmd`. Keep this folder in place while the service is
-installed. From a native 64-bit Command Prompt running as an Administrator:
+Copy the XP build to a folder on the target's local disk, such as
+`C:\nvtune-xp`, under the filename `nvtunedrv.sys`, beside
+`install-on-xp.cmd`. A VMware shared folder, UNC path or mapped network drive
+is not a kernel-driver installation location. Keep the local folder in place
+while the service is installed. From a native 64-bit Command Prompt running
+as an Administrator:
 
 ```bat
 install-on-xp.cmd install
@@ -84,5 +87,19 @@ driver target and newer kernel copies. Twelve host mock cases cover the CMD
 installer, including paths with spaces and service creation/start/stop errors.
 The default Vista rebuild retains identical executable `.text` and imports.
 
-Guest load/IOCTL results must still be recorded before claiming tested XP
-support. No physical NVIDIA hardware results are claimed here.
+On 2026-09-06, that driver loaded successfully on an actual Windows XP
+Professional x64 SP2 VM (NT 5.2 build 3790). Guest installation used a native
+Service Control Manager validation helper to copy the driver onto the local
+disk, create a demand-start kernel service and verify the running state.
+XP normalized the service's filename to `\??\C:\Druta-XP-Test\nvtunedrv.sys`.
+The CMD installer itself was exercised by the twelve host mock cases above.
+
+All eight read-only driver checks passed: administrator open, ABI/version
+query, short-output rejection, invalid-handle rejection, zero-count rejection,
+non-NVIDIA-device rejection, unknown-IOCTL rejection and denial of a token
+whose Administrator SID was made deny-only. The XP code-integrity information
+query returned `STATUS_INVALID_INFO_CLASS`; the harness treats that optional
+Vista-era diagnostic as informational on XP.
+
+These checks sent no write IOCTLs. No physical NVIDIA hardware results are
+claimed here.
