@@ -93,9 +93,17 @@ unknown IOCTL, and access denial for a token with the Administrators SID made
 deny-only. No hardware write IOCTL was sent.
 
 All 167 CLI imports and 41 driver imports, including export forwarders, were
-also resolved against copies of that guest's actual system DLLs. The retained
-Win7 build and the Vista build each passed the 17-case suite on the build host;
-the earlier Win7 guest validation remains documented in [WINDOWS7.md](WINDOWS7.md).
+also resolved against copies of that guest's actual system DLLs. The identical
+Vista-targeted executable, signed driver and native installer then passed the
+same 17 CLI cases and eight native driver checks on Windows 7 Ultimate SP1 x64
+(6.1.7601) in VMware Workstation Pro. Installation there also used a directory
+with spaces. The retained Win7 build passed the 17-case suite on the build host;
+earlier Win7 validation is documented in [WINDOWS7.md](WINDOWS7.md).
+
+Both guests were restored after testing: the demand-start service and exact
+test certificate were removed, the previous absence of the BCDEdit test-signing
+entry was restored, and a reboot confirmed running kernel code-integrity
+options `0x1` with test signing off. No build-host boot or trust setting changed.
 
 The Vista build targets the OS loader and API contract. GPU register access
 still requires testing on a physical supported card and its Vista NVIDIA

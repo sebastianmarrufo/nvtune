@@ -84,7 +84,19 @@ Restore the target's previous test-signing setting and reboot.
 
 ## Validation scope
 
-Validation used Windows 7 Ultimate SP1 x64 in VMware Player 17. The signed
+The current Vista-targeted executable and driver were also tested on Windows 7
+Ultimate SP1 x64 (6.1.7601) in VMware Workstation Pro. The CRLF native installer
+created and started the signed driver from
+`C:\Druta\nvtune Vista driver regression\driver package`. Its kernel image path
+was unquoted and normalized, and service/Win32 errors were zero. All eight
+native read-only driver checks and all 17 CLI contract cases passed. Help,
+fields, no-NVIDIA enumeration/preview and invalid mode combinations returned
+the expected statuses. After testing, the service and exact test certificate
+were removed, the original absence of the BCDEdit test-signing entry was
+restored, and a reboot confirmed runtime code-integrity options `0x1` with
+test signing off.
+
+Earlier validation used Windows 7 Ultimate SP1 x64 in VMware Player 17. The signed
 driver installed under PowerShell 2.0 and reached `KERNEL_DRIVER RUNNING`
 with zero service/Win32 errors. Read-only IOCTL checks returned ABI 1,
 driver version `0x10000` and eight mapping slots. Invalid sizes, handles,
