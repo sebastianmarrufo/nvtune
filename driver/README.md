@@ -7,6 +7,10 @@ For Vista SP2 / Windows 7 portable builds and the native Command Prompt
 installer, see [WINDOWS_VISTA.md](../WINDOWS_VISTA.md). Use `build.cmd` for the
 Vista kernel target and `sign-for-target.ps1 -LegacySha1` for a legacy test VM.
 
+For the separate XP Professional x64 SP2 driver target, import audit and
+native installer, see [WINDOWS_XP.md](WINDOWS_XP.md). Use `build.cmd xp`;
+the Vista signing workflow is not required on this XP target.
+
 ## Layout
 
 ```

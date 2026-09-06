@@ -23,6 +23,27 @@ REM  actually be the x64 one.
 REM ---------------------------------------------------------------------------
 setlocal EnableExtensions
 
+REM XP x64 is NT 5.2 (the Server 2003 SP2 kernel), not 32-bit XP's NT 5.1.
+REM Compile against that API contract as well as setting the linker target.
+REM Keep the default Vista output and signing workflow unchanged.
+set "NVT_WINVER=0x0600"
+set "NVT_NTDDI=0x06000000"
+set "NVT_SUBSYSTEM=6.00"
+set "NVT_OSVERSION=6.0"
+set "NVT_OBJDIR=obj"
+set "NVT_OUTPUT=nvtunedrv.sys"
+if /i "%~1"=="xp" (
+  set "NVT_WINVER=0x0502"
+  set "NVT_NTDDI=0x05020200"
+  set "NVT_SUBSYSTEM=5.02"
+  set "NVT_OSVERSION=5.2"
+  set "NVT_OBJDIR=obj-xp"
+  set "NVT_OUTPUT=nvtunedrv-xp.sys"
+) else if not "%~1"=="" if /i not "%~1"=="vista" (
+  echo Usage: build.cmd [vista ^| xp]
+  exit /b 2
+)
+
 if "%WindowsSdkDir%"=="" (
   echo ERROR: WindowsSdkDir is not set.
   echo Run this from an EWDK build environment ^(LaunchBuildEnv.cmd^) or a
@@ -79,32 +100,37 @@ if not exist "%KMLIB%\ntoskrnl.lib" (
   exit /b 1
 )
 
-if not exist obj mkdir obj
+if not exist "%NVT_OBJDIR%" mkdir "%NVT_OBJDIR%"
 
 echo Compiling nvtunedrv.c ...
-REM Target the oldest supported kernel. Keep /GS enabled; the Vista-compatible
-REM GsDriverEntry in BufferOverflowK initializes its cookie before DriverEntry.
+REM Keep /GS enabled. BufferOverflowK initializes the cookie before DriverEntry;
+REM BufferOverflowFastFailK instead requires the Windows 8 loader and is invalid
+REM for these targets. Check the final XP imports with check-xp-imports.py.
 "%CL_X64%" /nologo /c /W4 /WX /O2 /Zi /GS /Gz /kernel /std:c11 ^
    /D_AMD64_ /DAMD64 /D_WIN64 /DNDEBUG ^
-   /D_WIN32_WINNT=0x0600 /DWINVER=0x0600 /DNTDDI_VERSION=0x06000000 ^
+   /D_WIN32_WINNT=%NVT_WINVER% /DWINVER=%NVT_WINVER% /DNTDDI_VERSION=%NVT_NTDDI% ^
    /I"%KMINC%" /I"%SHAREDINC%" /Iinclude ^
-   /Fo:obj\ /Fd:obj\nvtunedrv.pdb ^
+   /Fo:%NVT_OBJDIR%\ /Fd:%NVT_OBJDIR%\nvtunedrv.pdb ^
    nvtunedrv.c
 if errorlevel 1 exit /b 1
 
-echo Linking nvtunedrv.sys ...
+echo Linking %NVT_OUTPUT% ...
 for %%D in ("%CL_X64%") do set "LINK_X64=%%~dpDlink.exe"
 
-"%LINK_X64%" /nologo /OUT:nvtunedrv.sys ^
-   /DRIVER /SUBSYSTEM:NATIVE,6.00 /OSVERSION:6.0 /ENTRY:GsDriverEntry ^
+"%LINK_X64%" /nologo /OUT:%NVT_OUTPUT% ^
+   /DRIVER /SUBSYSTEM:NATIVE,%NVT_SUBSYSTEM% /OSVERSION:%NVT_OSVERSION% /ENTRY:GsDriverEntry ^
    /NODEFAULTLIB /INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF ^
    /RELEASE /MANIFEST:NO /MACHINE:X64 ^
    /LIBPATH:"%KMLIB%" ^
    ntoskrnl.lib hal.lib wdmsec.lib BufferOverflowK.lib ^
-   obj\nvtunedrv.obj
+   %NVT_OBJDIR%\nvtunedrv.obj
 if errorlevel 1 exit /b 1
 
 echo.
-echo Built nvtunedrv.sys ^(x64^)
-echo Next: .\sign-for-target.ps1, then install the signed package on the target.
+echo Built %NVT_OUTPUT% ^(x64, NT %NVT_OSVERSION%^)
+if /i "%~1"=="xp" (
+  echo Next: verify the XP kernel imports and use install-on-xp.cmd.
+) else (
+  echo Next: .\sign-for-target.ps1, then install the signed package on the target.
+)
 endlocal
