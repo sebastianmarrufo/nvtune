@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Reject accidental UCRT or compiler DLL dependencies in the portable build.
-# This supplements, but cannot replace, execution on Windows Vista.
+# XP x64 and Vista share this DLL contract; exports still need a target audit.
+# This supplements, but cannot replace, execution on the selected Windows OS.
+if(NOT DEFINED NVTUNE_PLATFORM_NAME)
+    set(NVTUNE_PLATFORM_NAME "Vista")
+endif()
 execute_process(COMMAND "${NVTUNE_OBJDUMP}" -p "${NVTUNE_BINARY}"
     RESULT_VARIABLE result OUTPUT_VARIABLE headers ERROR_VARIABLE diagnostic)
 if(NOT result EQUAL 0)
@@ -8,7 +12,7 @@ if(NOT result EQUAL 0)
 endif()
 string(REGEX MATCHALL "DLL Name: [^\r\n]+" imports "${headers}")
 if(NOT imports)
-    message(FATAL_ERROR "No PE imports found in ${NVTUNE_BINARY}; refusing an unchecked Vista build.")
+    message(FATAL_ERROR "No PE imports found in ${NVTUNE_BINARY}; refusing an unchecked ${NVTUNE_PLATFORM_NAME} build.")
 endif()
 foreach(import IN LISTS imports)
     string(REPLACE "DLL Name: " "" dll "${import}")
@@ -16,8 +20,8 @@ foreach(import IN LISTS imports)
     string(TOLOWER "${dll}" dll)
     if(NOT dll MATCHES "^(advapi32|kernel32|msvcrt|setupapi|cfgmgr32)\\.dll$")
         message(FATAL_ERROR
-            "${NVTUNE_BINARY} imports ${dll}, outside the Vista system DLL contract. "
+            "${NVTUNE_BINARY} imports ${dll}, outside the ${NVTUNE_PLATFORM_NAME} system DLL contract. "
             "Use an msvcrt mingw-w64 toolchain with NVTUNE_STATIC_RUNTIME=ON.")
     endif()
 endforeach()
-message(STATUS "Vista system DLL audit passed: ${NVTUNE_BINARY}")
+message(STATUS "${NVTUNE_PLATFORM_NAME} system DLL audit passed: ${NVTUNE_BINARY}")

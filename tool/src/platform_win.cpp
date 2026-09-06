@@ -21,6 +21,20 @@
 namespace nvtune::platform {
 
 bool is_elevated() {
+#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
+    // XP has no TokenElevation information class. Check the effective token's
+    // enabled Administrators SID, so disabled/deny-only groups cannot pass.
+    SID_IDENTIFIER_AUTHORITY authority = SECURITY_NT_AUTHORITY;
+    PSID administrators = nullptr;
+    if (!::AllocateAndInitializeSid(&authority, 2, SECURITY_BUILTIN_DOMAIN_RID,
+            DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &administrators)) {
+        return false;
+    }
+    BOOL member = FALSE;
+    const BOOL ok = ::CheckTokenMembership(nullptr, administrators, &member);
+    ::FreeSid(administrators);
+    return ok != 0 && member != FALSE;
+#else
     HANDLE token = nullptr;
     if (!::OpenProcessToken(::GetCurrentProcess(), TOKEN_QUERY, &token)) {
         return false;
@@ -31,6 +45,7 @@ bool is_elevated() {
                                           sizeof(elevation), &size);
     ::CloseHandle(token);
     return ok != 0 && elevation.TokenIsElevated != 0;
+#endif
 }
 
 const char* privilege_name() { return "Administrator"; }

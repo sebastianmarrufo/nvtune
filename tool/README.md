@@ -50,6 +50,28 @@ in [WINDOWS_VISTA.md](../WINDOWS_VISTA.md). The Win7-only option remains in
 [WINDOWS7.md](../WINDOWS7.md). A current compiler's default build does not
 establish compatibility with either OS.
 
+For Windows XP Professional x64 SP2 (NT 5.2), use an msvcrt-targeting x64
+mingw-w64 toolchain such as w64devkit, with its compiler and Ninja on PATH.
+From the repository root:
+
+```powershell
+cmake -S tool -B build/xp -G Ninja -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release -DNVTUNE_WINDOWS_XP=ON
+cmake --build build/xp
+ctest --test-dir build/xp --output-on-failure
+```
+
+This compiles with `WINVER`/`_WIN32_WINNT=0x0502` and
+`NTDDI_VERSION=0x05020200`, links PE OS/subsystem version 5.2, and defaults to
+static compiler runtimes. A post-build audit rejects compiler DLL and UCRT
+dependencies. It does not prove that every imported function is present on
+the target: validate exports and run the CLI suite on XP x64. This option
+cannot be combined with the Vista or Win7 options and does not support 32-bit
+XP. The driver and its installation procedure also need XP x64 validation.
+The XP build checks administrator access through enabled token membership;
+Vista and newer builds retain their elevation query. Its additional native
+`platform_selftest.exe` checks the current token and rejection of a deny-only
+Administrators SID without accessing a driver or changing account settings.
+
 Run `ctest --test-dir build -C Release --output-on-failure` after building.
 The self-test links an in-memory backend, so it needs neither a GPU nor a
 loaded driver and cannot access hardware. `-DBUILD_TESTING=OFF` skips it.
