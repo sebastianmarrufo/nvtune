@@ -64,7 +64,7 @@ echo Built nvtune.exe
 
 if /i "%~1"=="test" (
   echo Building selftest.exe ...
-  cl %CXXFLAGS% %INCS% tests\selftest.cpp src\arch.cpp src\regs.cpp src\vbios.cpp src\clocks.cpp src\json.cpp src\gpu.cpp src\mmio_win.cpp src\platform_win.cpp src\pci_win.cpp /Fe:selftest.exe /link %LIBS% %SYSLIBS%
+  cl %CXXFLAGS% %INCS% tests\selftest.cpp tests\fake_backend.cpp src\cli.cpp src\arch.cpp src\regs.cpp src\vbios.cpp src\clocks.cpp src\json.cpp src\gpu.cpp /Fe:selftest.exe /link %LIBS% %SYSLIBS%
   if errorlevel 1 (echo SELFTEST BUILD FAILED & del /q *.obj 2>nul & exit /b 1)
   echo Built selftest.exe -- run it to verify: selftest.exe
 )

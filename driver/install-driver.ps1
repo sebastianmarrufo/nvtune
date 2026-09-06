@@ -39,12 +39,29 @@ param(
     [switch]$Stop,
     [switch]$Uninstall,
     [switch]$Status,
-    [string]$SysPath = (Join-Path $PSScriptRoot "..\driver\nvtunedrv.sys"),
+    [string]$SysPath = "",
+    [string]$CertPath = "",
     [string]$CertName = "nvtune test signing"
 )
 
 $ErrorActionPreference = "Stop"
 $ServiceName = "nvtunedrv"
+$ScriptFile = $MyInvocation.MyCommand.Path
+$ScriptDir = Split-Path -Parent $ScriptFile
+if (-not $SysPath) { $SysPath = Join-Path $ScriptDir "nvtunedrv.sys" }
+
+# Windows 7 ships PowerShell 2, without Import-Certificate or $PSScriptRoot.
+function Trust-PublicCertificate([string]$Path) {
+    $cert = New-Object Security.Cryptography.X509Certificates.X509Certificate2
+    $cert.Import((Resolve-Path $Path).Path)
+    foreach ($name in @("Root", "TrustedPublisher")) {
+        $store = New-Object Security.Cryptography.X509Certificates.X509Store($name, "LocalMachine")
+        try {
+            $store.Open("ReadWrite")
+            $store.Add($cert)
+        } finally { $store.Close() }
+    }
+}
 
 function Assert-Elevated {
     $id = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -75,6 +92,9 @@ function Find-SignTool {
 
 function Do-Sign {
     Assert-Elevated
+    if (-not (Get-Command New-SelfSignedCertificate -ErrorAction SilentlyContinue)) {
+        throw "Create the signed package on a build machine with sign-for-target.ps1, then use -Install -CertPath on Windows 7."
+    }
     if (-not (Test-Path $SysPath)) {
         throw "$SysPath not found. Build it first with windows\driver\build.cmd."
     }
@@ -99,11 +119,7 @@ function Do-Sign {
     # Trust it as a root and as a publisher, machine-wide.
     $tmp = Join-Path $env:TEMP "nvtune-test-cert.cer"
     Export-Certificate -Cert $cert -FilePath $tmp -Force | Out-Null
-    foreach ($store in @("Root", "TrustedPublisher")) {
-        Import-Certificate -FilePath $tmp `
-            -CertStoreLocation "Cert:\LocalMachine\$store" | Out-Null
-        Write-Host "  trusted in LocalMachine\$store"
-    }
+    Trust-PublicCertificate $tmp
     Remove-Item $tmp -Force
 
     $signtool = Find-SignTool
@@ -140,6 +156,7 @@ turn Secure Boot off in firmware.
 function Do-Install {
     Assert-Elevated
     $full = (Resolve-Path $SysPath).Path
+    if ($CertPath) { Trust-PublicCertificate $CertPath }
 
     $sig = Get-AuthenticodeSignature $full
     if ($sig.Status -ne "Valid") {
@@ -155,7 +172,7 @@ function Do-Install {
     }
 
     Write-Host "Creating service..."
-    & sc.exe create $ServiceName type= kernel start= auto `
+    & sc.exe create $ServiceName type= kernel start= demand `
         binPath= $full DisplayName= "nvtune BAR0 accessor"
     if ($LASTEXITCODE -ne 0) { throw "sc create failed." }
 
@@ -242,5 +259,5 @@ if ($Uninstall)         { Do-Uninstall;         $did = $true }
 if ($Status)            { Do-Status;            $did = $true }
 
 if (-not $did) {
-    Get-Help $PSCommandPath -Detailed
+    Get-Help $ScriptFile -Detailed
 }

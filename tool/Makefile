@@ -13,16 +13,17 @@
 
 WINCXX      ?= x86_64-w64-mingw32-g++
 WINCXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra -Wpedantic -Wshadow \
-               -D_WIN32_WINNT=0x0601 -Iinclude -I../driver/include
-WINLIBS     ?= -lsetupapi -lcfgmgr32 -static -static-libgcc -static-libstdc++
+               -DWINVER=0x0601 -D_WIN32_WINNT=0x0601 -Iinclude -I../driver/include
+WINLIBS     ?= -lsetupapi -lcfgmgr32 -ladvapi32 -static -static-libgcc -static-libstdc++ \
+               -Wl,--major-os-version,6,--minor-os-version,1 \
+               -Wl,--major-subsystem-version,6,--minor-subsystem-version,1
 
 SRC := src/main.cpp src/cli.cpp src/arch.cpp src/regs.cpp src/gpu.cpp \
        src/vbios.cpp src/clocks.cpp src/json.cpp src/pci_win.cpp \
        src/mmio_win.cpp src/platform_win.cpp
 
-SELFTEST_SRC := tests/selftest.cpp src/arch.cpp src/regs.cpp src/vbios.cpp \
-                src/clocks.cpp src/json.cpp src/gpu.cpp src/mmio_win.cpp \
-                src/platform_win.cpp src/pci_win.cpp
+SELFTEST_SRC := tests/selftest.cpp tests/fake_backend.cpp src/cli.cpp src/arch.cpp src/regs.cpp src/vbios.cpp \
+                src/clocks.cpp src/json.cpp src/gpu.cpp
 
 .PHONY: all selftest clean
 
