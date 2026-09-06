@@ -38,7 +38,9 @@ idle timings.
 - **tool** --  See `tool/README.md`.
 - **driver** --  See `driver/README.md`.
 
-Portable Vista SP2 / Windows 7 SP1 x64 build instructions are in
+The portable Windows XP Professional x64 SP2 build is documented in
+[WINDOWS_XP.md](WINDOWS_XP.md). This is the NT 5.2 edition of XP; 32-bit XP is
+not supported. Portable Vista SP2 / Windows 7 SP1 x64 build instructions are in
 [WINDOWS_VISTA.md](WINDOWS_VISTA.md). The original Windows 7 build and validation
 are in [WINDOWS7.md](WINDOWS7.md). For a preview, always
 pass `set --dry-run` or `apply --dry-run`; a bare `set` writes registers.
