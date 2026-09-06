@@ -134,14 +134,6 @@ std::vector<std::string> Gpu::field_warnings(const Field& f,
                     "Changing it is very likely to corrupt the memory "
                     "interface.");
     }
-    if (f.typical.has_value()) {
-        const auto [lo, hi] = *f.typical;
-        if (new_v < lo || new_v > hi) {
-            w.push_back(std::string(f.name) + "=" + std::to_string(new_v) +
-                        " is outside the typical range " + std::to_string(lo) +
-                        ".." + std::to_string(hi) + ".");
-        }
-    }
     if (old_v != 0 && new_v * 2 < old_v) {
         w.push_back(std::string(f.name) + " more than halved (" +
                     std::to_string(old_v) + " -> " + std::to_string(new_v) +

@@ -20,7 +20,7 @@ REM ===================================================================
 
 setlocal enableextensions
 
-set "CXXFLAGS=/std:c++17 /EHsc /W4 /O2 /nologo /D_CRT_SECURE_NO_WARNINGS"
+set "CXXFLAGS=/std:c++17 /EHsc /W4 /O2 /nologo /MT /D_CRT_SECURE_NO_WARNINGS /D_WIN32_WINNT=0x0601 /DWINVER=0x0601"
 set "OWN=/I include /I ..\driver\include"
 set "SYSLIBS=setupapi.lib cfgmgr32.lib advapi32.lib"
 

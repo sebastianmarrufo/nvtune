@@ -12,11 +12,11 @@
         1. creates (or reuses) a self-signed code-signing certificate
         2. signs nvtunedrv.sys with it
         3. exports the PUBLIC certificate (.cer) -- no private key
-        4. drops a ready-to-run install script into the output folder
+        4. copies a double-click install-on-target.bat into the output folder
 
     Nothing is added to this machine's trust store, no service is created, and
     test signing is NOT toggled here. All of that happens on the target, via
-    the generated deploy\install-on-target.ps1.
+    the deploy\install-on-target.bat (just double-click it on the target).
 
     IMPORTANT REALITY CHECK. A self-signed test certificate is not trusted
     anywhere by default. For the driver to load on the target, the target must:
@@ -24,8 +24,8 @@
         - have test signing ON (bcdedit) and be rebooted
         - trust this .cer in LocalMachine\Root and \TrustedPublisher
         - have Memory Integrity / HVCI OFF
-    The generated install-on-target.ps1 does the trust + service steps. The
-    firmware/boot ones are the operator's job and cannot be scripted from
+    install-on-target.bat does the trust + service steps (and self-elevates).
+    The firmware/boot ones are the operator's job and cannot be scripted from
     userspace.
 
     The private key stays in this machine's CurrentUser store and is never
@@ -49,7 +49,7 @@
     # On the build machine:
     .\sign-for-target.ps1
     # Copy the whole deploy\ folder to the target, then on the target:
-    .\install-on-target.ps1
+    # double-click install-on-target.bat
 
 .EXAMPLE
     # Reuse a PFX you already have:
@@ -151,118 +151,15 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # --- emit the on-target installer ------------------------------------------
-$installer = @'
-<#
-  Run on the TARGET machine, elevated. Copy the whole deploy\ folder over first.
-
-  Prerequisites the operator must handle in firmware / boot (cannot be scripted
-  from userspace):
-    - Secure Boot OFF   (test signing cannot be enabled while it is on)
-    - Memory Integrity / Core Isolation OFF  (Windows Security > Device security)
-
-  This script does the parts that CAN be scripted: trust the certificate,
-  enable test signing, register and start the service.
-#>
-[CmdletBinding()]
-param(
-    [switch]$EnableTestSigning,
-    [switch]$Install,
-    [switch]$All,
-    [string]$Sys  = (Join-Path $PSScriptRoot "nvtunedrv.sys"),
-    [string]$Cer  = (Join-Path $PSScriptRoot "nvtunedrv-cert.cer"),
-    [string]$ServiceName = "nvtunedrv"
-)
-$ErrorActionPreference = "Stop"
-
-function Assert-Elevated {
-    $id = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $p  = New-Object Security.Principal.WindowsPrincipal($id)
-    if (-not $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-        throw "Run this from an elevated PowerShell prompt."
-    }
+# --- copy the double-click .bat installer into the deploy folder ----------
+$batSrc = Join-Path $PSScriptRoot "install-on-target.bat"
+$batDst = Join-Path $OutDir "install-on-target.bat"
+if (Test-Path $batSrc) {
+    Copy-Item $batSrc $batDst -Force
+    Write-Host "Copied on-target installer -> $batDst"
+} else {
+    Write-Warning "install-on-target.bat not found next to this script; the deploy folder will lack the installer."
 }
-
-function Trust-Cert {
-    Assert-Elevated
-    if (-not (Test-Path $Cer)) { throw "certificate not found: $Cer" }
-    foreach ($store in @("Root","TrustedPublisher")) {
-        Import-Certificate -FilePath $Cer -CertStoreLocation "Cert:\LocalMachine\$store" | Out-Null
-        Write-Host "  trusted in LocalMachine\$store"
-    }
-}
-
-function Enable-TestSigning {
-    Assert-Elevated
-    & bcdedit.exe /set "{current}" testsigning on
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warning "bcdedit failed. If Secure Boot is on, disable it in firmware first."
-        return
-    }
-    Write-Host "Test signing enabled. REBOOT before installing the service." -ForegroundColor Yellow
-}
-
-function Install-Driver {
-    Assert-Elevated
-    if (-not (Test-Path $Sys)) { throw "driver not found: $Sys" }
-    Trust-Cert
-    $full = (Resolve-Path $Sys).Path
-
-    $sig = Get-AuthenticodeSignature $full
-    Write-Host "Signature: $($sig.Status)  $($sig.SignerCertificate.Subject)"
-    if ($sig.Status -ne "Valid") {
-        Write-Warning "Signature is '$($sig.Status)'. If this says NotTrusted, the cert import above"
-        Write-Warning "has not taken effect yet, or test signing is off / no reboot has happened."
-    }
-
-    $exists = & sc.exe query $ServiceName 2>$null
-    if ($LASTEXITCODE -eq 0) {
-        & sc.exe stop   $ServiceName | Out-Null
-        & sc.exe delete $ServiceName | Out-Null
-        Start-Sleep -Milliseconds 500
-    }
-    & sc.exe create $ServiceName type= kernel start= demand binPath= $full DisplayName= "nvtune BAR0 accessor"
-    if ($LASTEXITCODE -ne 0) { throw "sc create failed." }
-
-    & sc.exe start $ServiceName
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warning @"
-sc start failed. Common causes:
-  577  signature rejected -> test signing not active (reboot after -EnableTestSigning),
-       or the cert isn't trusted (this script imports it; confirm no error above).
-  1275 blocked by Memory Integrity / vulnerable-driver blocklist -> turn off
-       Core Isolation > Memory Integrity in Windows Security, reboot.
-"@
-        throw "sc start failed."
-    }
-    Write-Host "nvtunedrv is running. The tool can now reach BAR0." -ForegroundColor Green
-}
-
-if ($All) {
-    Enable-TestSigning
-    Write-Host "`nReboot now, then re-run:  .\install-on-target.ps1 -Install`n" -ForegroundColor Yellow
-    return
-}
-if ($EnableTestSigning) { Enable-TestSigning; return }
-if ($Install)           { Install-Driver;     return }
-
-Write-Host @"
-nvtunedrv on-target installer
-
-First time on this machine:
-  1. (firmware)  disable Secure Boot
-  2. (Windows Security)  disable Core Isolation > Memory Integrity
-  3.  .\install-on-target.ps1 -EnableTestSigning
-  4.  reboot   (you should see a 'Test Mode' desktop watermark)
-  5.  .\install-on-target.ps1 -Install
-
-Already set up, just (re)loading:
-     .\install-on-target.ps1 -Install
-"@
-'@
-
-$installerPath = Join-Path $OutDir "install-on-target.ps1"
-Set-Content -Path $installerPath -Value $installer -Encoding UTF8
-Write-Host "Wrote on-target installer -> $installerPath"
 
 # --- summary ---------------------------------------------------------------
 Write-Host "`n----------------------------------------------------------------"
@@ -271,11 +168,12 @@ Get-ChildItem $OutDir | ForEach-Object { Write-Host ("  {0,-28} {1,10:N0} bytes"
 Write-Host "----------------------------------------------------------------"
 Write-Host @"
 
-Copy that entire folder to the target machine, then on the target (elevated):
+Copy that entire folder to the target machine, then on the target just
+DOUBLE-CLICK install-on-target.bat (it self-elevates):
 
-    .\install-on-target.ps1 -EnableTestSigning
-    (reboot)
-    .\install-on-target.ps1 -Install
+    1. double-click install-on-target.bat  -> enables test signing
+    2. reboot
+    3. double-click install-on-target.bat again -> trusts cert + loads driver
 
 Nothing was installed or trusted on THIS machine.
 "@

@@ -1,0 +1,6 @@
+{
+  "name": "examplet",
+  "description": "Example JSON file to use as a template",
+  "applies_to": "FAW and RRD in this case",
+  "fields": { "FAW": 16, "RRD": 4 }
+}

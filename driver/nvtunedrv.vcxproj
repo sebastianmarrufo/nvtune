@@ -30,7 +30,7 @@
     <RootNamespace>nvtunedrv</RootNamespace>
     <!-- Latest installed WDK/SDK; override on the command line if needed. -->
     <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)'==''">$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
-    <TargetVersion>Windows10</TargetVersion>
+    <TargetVersion>Windows7</TargetVersion>
     <!-- No KMDF: this is a plain WDM driver. -->
     <DriverType>WDM</DriverType>
     <ConfigurationType>Driver</ConfigurationType>

@@ -20,6 +20,15 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# --- Windows 7 (0x0601) target + self-contained runtime -------------------
+# Target Windows 7 so we don't pull in Win8+ API symbols, and link the C/C++
+# runtime statically so the .exe launches on a Win7 box without the Universal
+# CRT update (KB2999226) or a VC++ redistributable installed.
+add_compile_definitions(_WIN32_WINNT=0x0601 WINVER=0x0601)
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")   # /MT (static CRT)
+endif()
+
 set(NVTUNE_SRC
     src/main.cpp
     src/cli.cpp
@@ -27,7 +36,6 @@ set(NVTUNE_SRC
     src/regs.cpp
     src/gpu.cpp
     src/vbios.cpp
-    src/clocks.cpp
     src/json.cpp
     src/pci_win.cpp
     src/mmio_win.cpp
@@ -55,7 +63,6 @@ target_link_libraries(nvtune PRIVATE setupapi cfgmgr32 advapi32)
 enable_testing()
 add_executable(selftest
     tests/selftest.cpp
-    src/arch.cpp src/regs.cpp src/vbios.cpp src/clocks.cpp src/json.cpp
     src/gpu.cpp src/mmio_win.cpp src/platform_win.cpp src/pci_win.cpp
 )
 target_include_directories(selftest PRIVATE

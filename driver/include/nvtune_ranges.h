@@ -83,12 +83,6 @@ static const NVT_RANGE kNvtRanges[] = {
     { 0x001850u, 0x000004u, 1, "PBUS_ROM_ACCESS" },
     { 0x300000u, 0x020000u, 0, "PROM (VBIOS mirror)" },
 
-    /* --- clock tree (PBUS/PCLOCK), read-only ------------------------- */
-    /* PLL coefficients and dividers for gpc/xbar/system/video/rop domains.
-     * Read-only: this tool reads and decodes clocks, it does not reprogram
-     * them (core-clock writes are a separate, opt-in future capability). */
-    { 0x132000u, 0x001000u, 0, "PFB memory PLL region (clocks, RO)" },
-    { 0x137000u, 0x001000u, 0, "PCLOCK PLL/divider region (clocks, RO)" },
 
 #if defined(NVTUNE_DISCOVERY)
     /*

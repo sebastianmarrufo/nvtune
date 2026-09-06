@@ -103,5 +103,8 @@ if errorlevel 1 exit /b 1
 
 echo.
 echo Built nvtunedrv.sys ^(x64^)
-echo Next: ..\scripts\install-driver.ps1 -Sign -Install
+echo Next: powershell .\install-driver.ps1 -Sign -Install 
+echo to install on this system
+echo Or powershell .\sign-for-target.ps1
+echo to make deploy folder for another system
 endlocal

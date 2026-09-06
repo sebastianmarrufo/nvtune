@@ -2,7 +2,7 @@
 /* Copyright (C) 2026 Sebastian Marrufo */
 
 /*
- * nvtunedrv - MMIO accessor for NVIDIA GPU BAR0.
+ * nvtunedrv - a MMIO accessor for NVIDIA GPU BAR0.
  *
  * Legacy (non-PnP) WDM driver. It does not attach to the GPU device stack and
  * does not fight the NVIDIA driver for ownership; it simply maps the same
@@ -20,6 +20,9 @@
  *   3. The device object is created with an ACL admitting only SYSTEM and
  *      Administrators.
  *
+ * The point of all that is to avoid shipping a general-purpose kernel
+ * read/write primitive. WinRing0 and RTCore64 got blocklisted precisely
+ * because they hand arbitrary physical memory to any caller.
  *
  * Build: see build.cmd (EWDK or WDK). Test-sign and load: see
  * ../scripts/install-driver.ps1.
@@ -466,6 +469,15 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
     UNICODE_STRING ntName, dosName, sddl;
 
     UNREFERENCED_PARAMETER(RegistryPath);
+
+    /*
+     * Opt every NonPagedPool allocation in this driver into non-executable
+     * (NX) pool. On Windows 8+ this is automatic with POOL_NX_OPTIN; on
+     * Windows 7 it requires this call in DriverEntry. This driver does not
+     * currently allocate pool, but the call is harmless and keeps the NX
+     * opt-in correct if that ever changes. Safe on all targeted OSes.
+     */
+    ExInitializeDriverRuntime(DrvRtPoolNxOptIn);
 
     RtlZeroMemory(g_Mappings, sizeof(g_Mappings));
     ExInitializeFastMutex(&g_Lock);

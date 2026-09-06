@@ -18,7 +18,6 @@
 #include "nvtune/arch.hpp"
 #include "nvtune/gpu.hpp"
 #include "nvtune/json.hpp"
-#include "nvtune/clocks.hpp"
 #include "nvtune/pci.hpp"
 #include "nvtune/platform.hpp"
 #include "nvtune/regs.hpp"
@@ -60,7 +59,6 @@ struct Options {
     std::vector<std::string> positional;
     std::optional<unsigned>  fbpa;
     bool     all_fbpa = false;
-    bool     force = false;
     bool     raw = false;
     bool     optional_regs = false;
     bool     full = false;
@@ -116,7 +114,6 @@ Options parse_options(const std::vector<std::string>& args) {
         if (a == "-d" || a == "--device")      o.devices.push_back(value("--device"));
         else if (a == "--fbpa")                o.fbpa = parse_u32(value("--fbpa"));
         else if (a == "--all-fbpa")            o.all_fbpa = true;
-        else if (a == "--force")               o.force = true;
         else if (a == "--raw")                 o.raw = true;
         else if (a == "--optional")            o.optional_regs = true;
         else if (a == "--full")                o.full = true;
@@ -238,9 +235,9 @@ std::string scope_label(Scope s) {
     return s.has_value() ? ("FBPA" + std::to_string(*s)) : std::string("broadcast");
 }
 
-// Returns true if any warning was emitted.
-bool print_ops(const std::vector<WriteOp>& ops) {
-    bool warned = false;
+// Prints each planned write and any advisory warnings. Warnings are
+// informational only -- they do not block the write.
+void print_ops(const std::vector<WriteOp>& ops) {
     for (const WriteOp& op : ops) {
         if (!op.dirty()) {
             std::cout << "  " << op.reg->name << " @" << hex(op.offset, 6)
@@ -256,12 +253,10 @@ bool print_ops(const std::vector<WriteOp>& ops) {
                       << std::left << std::setw(6) << c.new_value << "\n";
         }
         for (const std::string& w : op.warnings) {
-            warned = true;
             std::cout << "      ! " << w << "\n";
         }
     }
     std::cout << std::right;
-    return warned;
 }
 
 json::Value load_profile(const std::string& path) {
@@ -400,10 +395,6 @@ int cmd_dump(const Options& o) {
                 for (const Field& f : reg.fields) {
                     const std::uint32_t v = f.extract(word);
                     std::string flag;
-                    if (f.typical.has_value() &&
-                        (v < f.typical->first || v > f.typical->second)) {
-                        flag += "  <- outside typical range";
-                    }
                     std::cout << "        " << std::left << std::setw(12)
                               << f.name << std::setw(10) << f.bits()
                               << std::right << std::setw(6) << v << flag
@@ -448,13 +439,7 @@ int do_set(const Options& o, const Assignments& assignments) {
         for (Scope s : scopes_for(*g, o)) {
             std::cout << "  [" << scope_label(s) << "]\n";
             std::vector<WriteOp> ops = g->plan(assignments, s);
-            const bool warned = print_ops(ops);
-            if (warned && !o.force) {
-                err("refusing to write with warnings outstanding; re-run with "
-                    "--force if you mean it");
-                rc = 1;
-                continue;
-            }
+            print_ops(ops);   // warnings print as advisories; they do not block
 
             ensure_stock_backup(*g);
             std::vector<std::string> problems = g->commit(ops);
@@ -612,54 +597,6 @@ int cmd_daemon(const Options& o) {
 // Report every PCIe-clamp-related site the patcher can identify in a ROM,
 // without modifying it. Helps locate the driver-safe lever on cards whose
 // mechanism isn't auto-handled, and to diff a stock vs known-good ROM.
-int cmd_clocks(const Options& o) {
-    need_root();
-    for (auto& g : open_targets(o, false)) {
-        std::cout << g->dev().slot << "  " << g->arch().codename << " ("
-                  << g->arch().family << ")\n";
-        std::cout << "  NOTE: clock-tree offsets are INFERRED and vary by "
-                     "family; verify a domain against a known clock, and use "
-                     "peek/probe to correct offsets in src/clocks.cpp.\n";
-        for (const ClockDomain& d : clock_domains()) {
-            std::uint32_t coef = 0, ctrl = 0;
-            bool ok = true;
-            try {
-                coef = g->bar().rd32(d.coef_off);
-                if (d.ctrl_off) ctrl = g->bar().rd32(d.ctrl_off);
-            } catch (const MmioError&) {
-                ok = false;
-            }
-            std::cout << "  " << std::left << std::setw(14) << d.name
-                      << std::right;
-            if (!ok) {
-                std::cout << "  <offset not readable>\n";
-                continue;
-            }
-            std::cout << "  coef@" << hex(d.coef_off, 6) << "=" << hex(coef, 8);
-            if (d.ctrl_off) std::cout << " ctrl=" << hex(ctrl, 8);
-            if (d.kind == ClockKind::Pll) {
-                const PllCoef c = decode_pll(coef);
-                if (c.valid) {
-                    const std::uint32_t khz = pll_freq_khz(c);
-                    std::cout << "  N=" << c.n << " M=" << c.m << " P=" << c.p
-                              << "  ~" << (khz / 1000) << " MHz";
-                } else {
-                    std::cout << "  (M=0: divider or gated, not a live PLL)";
-                }
-            } else {
-                std::cout << "  (" << (d.kind == ClockKind::Divider ? "divider"
-                                                                    : "derived")
-                          << " off " << d.src << ")";
-            }
-            std::cout << "\n";
-            std::cout << "      " << d.human << "\n";
-        }
-        std::cout << "  reference assumed 27 MHz; f = ref*N/(M*2^P)\n";
-    }
-    return 0;
-}
-
-// Decode a device's PCIe link status/control. Defaults to the GPU; -d selects.
 int cmd_peek(const Options& o) {
     need_root();
     if (o.positional.empty()) die("peek needs an offset, e.g. peek 0x2b0");
@@ -891,7 +828,6 @@ commands:
   apply PROFILE.json        apply a JSON profile
   daemon [FIELD=VALUE...]   hold values against driver reprogramming
   probe                     dump or watch raw FBPA words
-  clocks                    read + decode clock domains
   peek OFFSET...            read raw dword(s) at FBPA-relative offset
   poke OFFSET VALUE         write a raw dword (needs --yes)
   vbios                     parse the VBIOS Memory Tweak Table
@@ -901,7 +837,6 @@ common options:
                         Default: all NVIDIA GPUs.
       --fbpa N          target one partition instead of the broadcast aperture
       --all-fbpa        target every active partition individually
-      --force           write even if range checks complain
   -o, --output PATH     save destination
   -i, --input PATH      restore source
 
@@ -947,7 +882,6 @@ int main(int argc, char** argv) {
         if (cmd == "restore") return cmd_restore(o);
         if (cmd == "apply")   return cmd_apply(o);
         if (cmd == "daemon")  return cmd_daemon(o);
-        if (cmd == "clocks")  return cmd_clocks(o);
         if (cmd == "peek")    return cmd_peek(o);
         if (cmd == "poke")    return cmd_poke(o);
         if (cmd == "probe")   return cmd_probe(o);

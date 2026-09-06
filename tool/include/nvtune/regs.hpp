@@ -19,7 +19,6 @@
 #pragma once
 
 #include <cstdint>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -39,8 +38,6 @@ struct Field {
     std::uint8_t lsb;
     std::uint8_t width;
     const char* desc;
-    // Advisory sane range for a cycle-count field. Absent = unknown.
-    std::optional<std::pair<std::uint32_t, std::uint32_t>> typical;
     // False for structural/training values that are not latency knobs.
     bool tunable;
 

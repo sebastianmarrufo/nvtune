@@ -13,15 +13,15 @@
 
 WINCXX      ?= x86_64-w64-mingw32-g++
 WINCXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra -Wpedantic -Wshadow \
-               -D_WIN32_WINNT=0x0601 -Iinclude -I../driver/include
-WINLIBS     ?= -lsetupapi -lcfgmgr32 -static -static-libgcc -static-libstdc++
+               -D_WIN32_WINNT=0x0601 -DWINVER=0x0601 -Iinclude -I../driver/include
+WINLIBS     ?= -lsetupapi -lcfgmgr32 -ladvapi32 -static -static-libgcc -static-libstdc++
 
 SRC := src/main.cpp src/cli.cpp src/arch.cpp src/regs.cpp src/gpu.cpp \
-       src/vbios.cpp src/clocks.cpp src/json.cpp src/pci_win.cpp \
+       src/vbios.cpp src/json.cpp src/pci_win.cpp \
        src/mmio_win.cpp src/platform_win.cpp
 
 SELFTEST_SRC := tests/selftest.cpp src/arch.cpp src/regs.cpp src/vbios.cpp \
-                src/clocks.cpp src/json.cpp src/gpu.cpp src/mmio_win.cpp \
+                src/json.cpp src/gpu.cpp src/mmio_win.cpp \
                 src/platform_win.cpp src/pci_win.cpp
 
 .PHONY: all selftest clean
