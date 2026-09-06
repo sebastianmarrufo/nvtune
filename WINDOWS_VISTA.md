@@ -66,12 +66,36 @@ checks elevation and that test signing is configured in BCDEdit. BCDEdit reports
 the configured boot state; rebooting before installation is still required.
 It refuses to replace an existing service;
 use `uninstall` before replacing its package. After later reboots run `start`.
+The kernel service's stored `ImagePath` must be a plain filename, including
+any spaces, without embedded quotes. The command script quotes the shell
+argument only; literal quotes in the stored path cause Vista error 123.
+The package generator explicitly writes the command script with CRLF line
+endings, because Vista's CMD can fail label lookup in LF-only batch files.
 `stop` and `uninstall` are available. To undo test setup, remove this certificate
 by thumbprint from both stores, restore the previous test-signing setting and
 reboot. The PowerShell installers remain available for Windows 7 or an updated
 Vista target.
 
 ## Validation scope
+
+On Windows Vista Ultimate SP2 x64 (6.0.6002), the static executable passed all
+17 in-memory CLI contract cases. `--help` and `fields` exited 0; `list` and an
+explicit timing preview returned the expected no-NVIDIA failure (1), while
+conflicting preview/commit flags and `restore --dry-run` returned usage status 2.
+
+The corrected CRLF native installer created and started the signed driver from
+`C:\Druta\nvtune validation\vista-driver`, exercising a real path containing
+spaces. Service configuration showed an unquoted kernel image path and the
+service reached `RUNNING` with no Win32/service error. Eight native read-only
+checks passed: administrator open, ABI/version response, rejection of a short
+output buffer, invalid mapping handle, zero read count, non-NVIDIA device and
+unknown IOCTL, and access denial for a token with the Administrators SID made
+deny-only. No hardware write IOCTL was sent.
+
+All 167 CLI imports and 41 driver imports, including export forwarders, were
+also resolved against copies of that guest's actual system DLLs. The retained
+Win7 build and the Vista build each passed the 17-case suite on the build host;
+the earlier Win7 guest validation remains documented in [WINDOWS7.md](WINDOWS7.md).
 
 The Vista build targets the OS loader and API contract. GPU register access
 still requires testing on a physical supported card and its Vista NVIDIA

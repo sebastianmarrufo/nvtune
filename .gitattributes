@@ -3,6 +3,7 @@
 *.h    text eol=crlf
 *.cpp  text eol=crlf
 *.hpp  text eol=crlf
+# Vista CMD label lookup requires CRLF; package generation also normalizes it.
 *.cmd  text eol=crlf
 *.ps1  text eol=crlf
 *.vcxproj text eol=crlf

@@ -48,7 +48,9 @@ certutil.exe -addstore -f Root "%~dp0nvtunedrv-cert.cer"
 if errorlevel 1 exit /b 1
 certutil.exe -addstore -f TrustedPublisher "%~dp0nvtunedrv-cert.cer"
 if errorlevel 1 exit /b 1
-sc.exe create nvtunedrv type= kernel start= demand binPath= "\"%~dp0nvtunedrv.sys\"" DisplayName= "nvtune BAR0 accessor"
+rem Quotes group the shell argument only. Kernel ImagePath is a filename, not
+rem a usermode service command line; storing literal quotes makes Vista fail 123.
+sc.exe create nvtunedrv type= kernel start= demand binPath= "%~dp0nvtunedrv.sys" DisplayName= "nvtune BAR0 accessor"
 if errorlevel 1 exit /b 1
 goto start
 

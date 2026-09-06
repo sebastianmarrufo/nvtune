@@ -297,7 +297,12 @@ Already set up, just (re)loading:
 $installerPath = Join-Path $OutDir "install-on-target.ps1"
 Set-Content -Path $installerPath -Value $installer -Encoding UTF8
 Write-Host "Wrote on-target installer -> $installerPath"
-Copy-Item (Join-Path $PSScriptRoot "install-on-target.cmd") $OutDir -Force
+# Source edits or downloads can bypass Git's eol=crlf checkout conversion.
+# Vista CMD can fail CALL :label on LF-only files, so normalize the payload
+# explicitly rather than depending on the build host's checkout settings.
+$cmdInstaller = Get-Content -LiteralPath (Join-Path $PSScriptRoot "install-on-target.cmd") -Raw
+$cmdInstaller = $cmdInstaller.Replace("`r`n", "`n").Replace("`r", "`n").Replace("`n", "`r`n")
+[IO.File]::WriteAllText((Join-Path $OutDir "install-on-target.cmd"), $cmdInstaller, [Text.Encoding]::ASCII)
 
 # --- summary ---------------------------------------------------------------
 Write-Host "`n----------------------------------------------------------------"
