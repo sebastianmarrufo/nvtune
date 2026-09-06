@@ -1,5 +1,9 @@
 # Windows 7 SP1 x64
 
+For a single portable build targeting Vista SP2 and Windows 7, see
+[WINDOWS_VISTA.md](WINDOWS_VISTA.md). The original Win7-only option below is
+retained. The manual kernel build now lowers its minimum to Vista (6.0).
+
 The compatibility build targets Windows 7 SP1 x64 (6.1.7601). Build it on a
 modern Windows machine; a new compiler's default output is not a guarantee
 that its runtime supports Windows 7.
@@ -35,7 +39,7 @@ the driver below, and a supported physical NVIDIA card.
 
 The driver remains plain WDM, with the same IOCTL ABI, administrator ACL,
 NVIDIA device checks and register allowlist. The manual build targets kernel
-6.1 and uses `/GS`, `GsDriverEntry` and `BufferOverflowK.lib` for the Windows 7
+6.0 and uses `/GS`, `GsDriverEntry` and `BufferOverflowK.lib` for the Vista/Windows 7
 security-cookie startup. Kernel imports are `ntoskrnl.exe` and `HAL.dll`.
 
 Run `driver/build.cmd` from an x64 MSVC/WDK environment as described in

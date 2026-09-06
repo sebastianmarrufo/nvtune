@@ -45,6 +45,11 @@
     Optional. Sign with an existing PFX (e.g. a shared team cert) instead of a
     self-signed one. You'll be prompted for its password.
 
+.PARAMETER LegacySha1
+    Create a SHA-1 test certificate and embedded signature for stock Vista SP2
+    and Windows 7. This is only for a dedicated development target, not release
+    signing. The default remains SHA-256. Legacy signatures are not timestamped.
+
 .EXAMPLE
     # On the build machine:
     .\sign-for-target.ps1
@@ -61,10 +66,17 @@ param(
     [string]$SysPath  = (Join-Path $PSScriptRoot "..\driver\nvtunedrv.sys"),
     [string]$OutDir   = (Join-Path $PSScriptRoot "deploy"),
     [string]$CertName = "nvtune test signing",
-    [string]$Pfx
+    [string]$Pfx,
+    [switch]$LegacySha1
 )
 
 $ErrorActionPreference = "Stop"
+$digest = "SHA256"
+if ($LegacySha1) {
+    $digest = "SHA1"
+    # Keep this separate from an existing SHA-256 test certificate.
+    $CertName += " legacy SHA1"
+}
 
 function Find-SignTool {
     $roots = @(
@@ -102,7 +114,11 @@ if ($Pfx) {
     Write-Host "Imported signing cert from PFX: $($cert.Thumbprint)"
 } else {
     $cert = Get-ChildItem Cert:\CurrentUser\My |
-            Where-Object { $_.Subject -eq "CN=$CertName" } |
+            Where-Object {
+                $_.Subject -eq "CN=$CertName" -and $_.HasPrivateKey -and
+                $_.NotAfter -gt (Get-Date) -and
+                (-not $LegacySha1 -or $_.SignatureAlgorithm.Value -eq "1.2.840.113549.1.1.5")
+            } |
             Select-Object -First 1
     if (-not $cert) {
         Write-Host "Creating self-signed code-signing certificate 'CN=$CertName'..."
@@ -111,12 +127,16 @@ if ($Pfx) {
             -Type CodeSigningCert `
             -CertStoreLocation Cert:\CurrentUser\My `
             -KeyUsage DigitalSignature `
-            -KeyExportPolicy Exportable `
+            -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm $digest `
+            -KeyExportPolicy NonExportable `
             -NotAfter (Get-Date).AddYears(5)
         Write-Host "  created $($cert.Thumbprint)"
     } else {
         Write-Host "Reusing existing certificate $($cert.Thumbprint)."
     }
+}
+if ($LegacySha1 -and $cert.SignatureAlgorithm.Value -ne "1.2.840.113549.1.1.5") {
+    throw "LegacySha1 requires an RSA/SHA-1 certificate for a stock Vista target."
 }
 
 # --- sign the driver -------------------------------------------------------
@@ -124,15 +144,20 @@ $outSys = Join-Path $OutDir "nvtunedrv.sys"
 Copy-Item $SysPath $outSys -Force
 
 Write-Host "Signing $outSys ..."
-& $signtool sign /v /fd SHA256 /sha1 $cert.Thumbprint `
-    /t http://timestamp.digicert.com $outSys
-if ($LASTEXITCODE -ne 0) {
-    # Offline build box: no timestamp server. Sign without one. The signature
-    # then expires with the certificate rather than outliving it, which is fine
-    # for a test-signed driver.
-    Write-Warning "Timestamping failed (offline?). Signing without a timestamp."
-    & $signtool sign /v /fd SHA256 /sha1 $cert.Thumbprint $outSys
+if ($LegacySha1) {
+    & $signtool sign /v /fd $digest /sha1 $cert.Thumbprint $outSys
     if ($LASTEXITCODE -ne 0) { throw "signtool failed." }
+} else {
+    & $signtool sign /v /fd $digest /sha1 $cert.Thumbprint `
+        /t http://timestamp.digicert.com $outSys
+    if ($LASTEXITCODE -ne 0) {
+        # Offline build box: no timestamp server. Sign without one. The signature
+        # then expires with the certificate rather than outliving it, which is fine
+        # for a test-signed driver.
+        Write-Warning "Timestamping failed (offline?). Signing without a timestamp."
+        & $signtool sign /v /fd $digest /sha1 $cert.Thumbprint $outSys
+        if ($LASTEXITCODE -ne 0) { throw "signtool failed." }
+    }
 }
 
 # --- export the PUBLIC certificate (no private key) ------------------------
@@ -272,12 +297,26 @@ Already set up, just (re)loading:
 $installerPath = Join-Path $OutDir "install-on-target.ps1"
 Set-Content -Path $installerPath -Value $installer -Encoding UTF8
 Write-Host "Wrote on-target installer -> $installerPath"
+Copy-Item (Join-Path $PSScriptRoot "install-on-target.cmd") $OutDir -Force
 
 # --- summary ---------------------------------------------------------------
 Write-Host "`n----------------------------------------------------------------"
 Write-Host "Deployable package ready in: $OutDir" -ForegroundColor Green
 Get-ChildItem $OutDir | ForEach-Object { Write-Host ("  {0,-28} {1,10:N0} bytes" -f $_.Name, $_.Length) }
 Write-Host "----------------------------------------------------------------"
+if ($LegacySha1) {
+    Write-Host @"
+
+Copy that entire folder to the target machine, then from elevated Command Prompt:
+
+    install-on-target.cmd enable-testsigning
+    (reboot)
+    install-on-target.cmd install
+
+This native installer works on stock Vista without PowerShell.
+Nothing was installed or trusted on THIS machine.
+"@
+} else {
 Write-Host @"
 
 Copy that entire folder to the target machine, then on the target (elevated):
@@ -288,6 +327,7 @@ Copy that entire folder to the target machine, then on the target (elevated):
 
 Nothing was installed or trusted on THIS machine.
 "@
+}
 if (-not $usingPfx) {
     Write-Host "The private key remains in Cert:\CurrentUser\My on this machine and"
     Write-Host "was not exported. Only the public .cer travels to the target."

@@ -21,11 +21,24 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(NVTUNE_WINDOWS7 "Build for Windows 7 SP1 x64 (validate on the target OS)" OFF)
-option(NVTUNE_STATIC_RUNTIME "Link the compiler runtime statically" ${NVTUNE_WINDOWS7})
+option(NVTUNE_WINDOWS_VISTA "Build for Windows Vista SP2 / Windows 7 x64" OFF)
+if(NVTUNE_WINDOWS7 AND NVTUNE_WINDOWS_VISTA)
+    message(FATAL_ERROR "Choose NVTUNE_WINDOWS_VISTA or NVTUNE_WINDOWS7, not both.")
+endif()
+set(NVTUNE_LEGACY_WINDOWS OFF)
+if(NVTUNE_WINDOWS7 OR NVTUNE_WINDOWS_VISTA)
+    set(NVTUNE_LEGACY_WINDOWS ON)
+endif()
+option(NVTUNE_STATIC_RUNTIME "Link the compiler runtime statically" ${NVTUNE_LEGACY_WINDOWS})
 
-if(NVTUNE_WINDOWS7)
+if(NVTUNE_LEGACY_WINDOWS)
     if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
-        message(FATAL_ERROR "The Windows 7 build requires an x64 toolchain.")
+        message(FATAL_ERROR "The legacy Windows build requires an x64 toolchain.")
+    endif()
+    if(NVTUNE_WINDOWS_VISTA AND NOT MINGW)
+        message(FATAL_ERROR
+            "Use mingw-w64 with the system msvcrt runtime for the Vista build; "
+            "current MSVC/UCRT runtimes are not a stock Vista compatibility target.")
     endif()
     if(MSVC AND MSVC_VERSION GREATER_EQUAL 1930)
         message(FATAL_ERROR
@@ -64,15 +77,33 @@ function(nvtune_configure target)
             target_link_options(${target} PRIVATE -static -static-libgcc -static-libstdc++)
         endif()
     endif()
-    if(NVTUNE_WINDOWS7)
-        target_compile_definitions(${target} PRIVATE WINVER=0x0601 _WIN32_WINNT=0x0601)
+    if(NVTUNE_LEGACY_WINDOWS)
+        set(api_version 0x0601)
+        set(minor_version 1)
+        if(NVTUNE_WINDOWS_VISTA)
+            set(api_version 0x0600)
+            set(minor_version 0)
+        endif()
+        target_compile_definitions(${target} PRIVATE
+            WINVER=${api_version} _WIN32_WINNT=${api_version})
         if(MSVC)
             target_link_options(${target} PRIVATE /SUBSYSTEM:CONSOLE,6.01)
         elseif(MINGW)
             target_link_options(${target} PRIVATE
-                -Wl,--major-os-version,6,--minor-os-version,1
-                -Wl,--major-subsystem-version,6,--minor-subsystem-version,1)
+                -Wl,--major-os-version,6,--minor-os-version,${minor_version}
+                -Wl,--major-subsystem-version,6,--minor-subsystem-version,${minor_version})
         endif()
+    endif()
+    if(NVTUNE_WINDOWS_VISTA)
+        if(NOT CMAKE_OBJDUMP)
+            message(FATAL_ERROR "The Vista build needs the toolchain's objdump to audit runtime dependencies.")
+        endif()
+        add_custom_command(TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+                "-DNVTUNE_OBJDUMP=${CMAKE_OBJDUMP}"
+                "-DNVTUNE_BINARY=$<TARGET_FILE:${target}>"
+                -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/check_vista_imports.cmake"
+            VERBATIM)
     endif()
 endfunction()
 

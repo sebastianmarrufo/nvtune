@@ -82,11 +82,11 @@ if not exist "%KMLIB%\ntoskrnl.lib" (
 if not exist obj mkdir obj
 
 echo Compiling nvtunedrv.c ...
-REM Target the oldest supported kernel. Keep /GS enabled; the Win7-compatible
+REM Target the oldest supported kernel. Keep /GS enabled; the Vista-compatible
 REM GsDriverEntry in BufferOverflowK initializes its cookie before DriverEntry.
 "%CL_X64%" /nologo /c /W4 /WX /O2 /Zi /GS /Gz /kernel /std:c11 ^
    /D_AMD64_ /DAMD64 /D_WIN64 /DNDEBUG ^
-   /D_WIN32_WINNT=0x0601 /DWINVER=0x0601 /DNTDDI_VERSION=0x06010000 ^
+   /D_WIN32_WINNT=0x0600 /DWINVER=0x0600 /DNTDDI_VERSION=0x06000000 ^
    /I"%KMINC%" /I"%SHAREDINC%" /Iinclude ^
    /Fo:obj\ /Fd:obj\nvtunedrv.pdb ^
    nvtunedrv.c
@@ -96,7 +96,7 @@ echo Linking nvtunedrv.sys ...
 for %%D in ("%CL_X64%") do set "LINK_X64=%%~dpDlink.exe"
 
 "%LINK_X64%" /nologo /OUT:nvtunedrv.sys ^
-   /DRIVER /SUBSYSTEM:NATIVE,6.01 /ENTRY:GsDriverEntry ^
+   /DRIVER /SUBSYSTEM:NATIVE,6.00 /OSVERSION:6.0 /ENTRY:GsDriverEntry ^
    /NODEFAULTLIB /INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF ^
    /RELEASE /MANIFEST:NO /MACHINE:X64 ^
    /LIBPATH:"%KMLIB%" ^

@@ -3,6 +3,10 @@
 The WDM kernel driver that gives the usermode tool bounds-checked access to the
 GPU's BAR0 and to PCI config space. C, built with the WDK/EWDK. Windows-only.
 
+For Vista SP2 / Windows 7 portable builds and the native Command Prompt
+installer, see [WINDOWS_VISTA.md](../WINDOWS_VISTA.md). Use `build.cmd` for the
+Vista kernel target and `sign-for-target.ps1 -LegacySha1` for a legacy test VM.
+
 ## Layout
 
 ```

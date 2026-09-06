@@ -38,8 +38,9 @@ idle timings.
 - **tool** --  See `tool/README.md`.
 - **driver** --  See `driver/README.md`.
 
-Windows 7 SP1 x64 build instructions, driver prerequisites and the limits of
-the VM validation are in [WINDOWS7.md](WINDOWS7.md). For a preview, always
+Portable Vista SP2 / Windows 7 SP1 x64 build instructions are in
+[WINDOWS_VISTA.md](WINDOWS_VISTA.md). The original Windows 7 build and validation
+are in [WINDOWS7.md](WINDOWS7.md). For a preview, always
 pass `set --dry-run` or `apply --dry-run`; a bare `set` writes registers.
 
 

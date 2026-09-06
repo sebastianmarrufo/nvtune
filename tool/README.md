@@ -45,9 +45,10 @@ build.cmd
 
 The build pulls the IOCTL contract header from `../driver/include`.
 
-For Windows 7 SP1 x64, use the explicit compatibility build described in
-[WINDOWS7.md](../WINDOWS7.md). A normal build with a current compiler is not
-automatically a Windows 7 runtime.
+For portable Vista SP2 / Windows 7 SP1 x64, use the explicit compatibility build
+in [WINDOWS_VISTA.md](../WINDOWS_VISTA.md). The Win7-only option remains in
+[WINDOWS7.md](../WINDOWS7.md). A current compiler's default build does not
+establish compatibility with either OS.
 
 Run `ctest --test-dir build -C Release --output-on-failure` after building.
 The self-test links an in-memory backend, so it needs neither a GPU nor a
