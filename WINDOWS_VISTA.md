@@ -61,7 +61,10 @@ install-on-target.cmd status
 The native installer uses Windows' `bcdedit`, `certutil` and `sc`, so it does
 not need [Vista's optional PowerShell update](https://devblogs.microsoft.com/powershell/windows-powershell-2-0-on-windows-update/).
 It imports the public certificate into LocalMachine Root and TrustedPublisher,
-then creates a demand-start service. It refuses to replace an existing service;
+then creates a demand-start service. Before changing certificate stores, it
+checks elevation and that test signing is configured in BCDEdit. BCDEdit reports
+the configured boot state; rebooting before installation is still required.
+It refuses to replace an existing service;
 use `uninstall` before replacing its package. After later reboots run `start`.
 `stop` and `uninstall` are available. To undo test setup, remove this certificate
 by thumbprint from both stores, restore the previous test-signing setting and
