@@ -98,7 +98,7 @@ if %errorlevel% equ 0 (
   sc delete %SVC% >nul 2>&1
   timeout /t 1 >nul
 )
-sc create %SVC% type= kernel start= demand binPath= "%SYS%" DisplayName= "nvtune BAR0 accessor"
+sc create %SVC% type= kernel start= auto binPath= "%SYS%" DisplayName= "nvtune BAR0 accessor"
 if errorlevel 1 ( echo ERROR: sc create failed. & pause & exit /b 1 )
 
 sc start %SVC%
