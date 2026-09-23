@@ -248,8 +248,31 @@ void Gpu::backup(const std::string& path, bool include_optional) const {
     json::write_file_atomic(path, json::Value(std::move(root)));
 }
 
+Assignments Gpu::profile_fields(Scope scope) const {
+    if (!arch_.known_chipset) {
+        throw std::runtime_error("field profile export requires a known GPU "
+                                 "chipset; " + arch_.codename +
+                                 " uses an assumed FBPA layout");
+    }
+    Assignments fields;
+    for (const Register& reg : timing_registers()) {
+        if (reg.confidence != Confidence::Documented) continue;
+        const std::uint32_t word = read_reg(reg, scope);
+        for (const Field& field : reg.fields) {
+            if (field.tunable) fields[field.name] = field.extract(word);
+        }
+    }
+    return fields;
+}
+
 std::vector<std::string> Gpu::restore(const std::string& path, bool verify) {
     json::Value doc = json::parse_file(path);
+    if (doc.contains("fields")) {
+        throw std::runtime_error(path + " is a field profile; use 'nvtune apply " +
+                                 path + "' or 'nvtune daemon --profile " +
+                                 path + "'. Restore requires a raw backup " +
+                                 "from 'nvtune save'.");
+    }
     if (doc.str_or("_format", "") != "nvtune-backup-1") {
         throw std::runtime_error(path + " is not an nvtune backup");
     }
