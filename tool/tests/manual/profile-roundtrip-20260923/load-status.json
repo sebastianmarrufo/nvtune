@@ -1,0 +1,17 @@
+{
+  "started": true,
+  "stopped": true,
+  "error": "",
+  "stats": {
+    "slot": "0000:01:00.0",
+    "device_name": "NVIDIA TITAN Xp",
+    "copies": 41168,
+    "bytes": 44203803410432,
+    "seconds": 207.4907432,
+    "buf_mib": 1024,
+    "free_mib": 11209,
+    "total_mib": 12287,
+    "gbps_traffic": 426.07976364347036,
+    "hit_deadline": false
+  }
+}

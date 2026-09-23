@@ -1,0 +1,77 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260923051034
+Username: COPEGE\Administrator
+RunAs User: COPEGE\Administrator
+Configuration Name: 
+Machine: COPEGE (Microsoft Windows NT 10.0.19044.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture_roundtrip.ps1
+Process ID: 13668
+PSVersion: 5.1.19041.1682
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.1682
+BuildVersion: 10.0.19041.1682
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+TITAN Xp / 0000:01:00.0 / driver 582.66 / live P2 profile test
+GPU band: P2, 5508
+PS> nvtune save --device 0000:01:00.0 --profile C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-original-profile.json
+  stock values saved to C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-appdata\nvtune\0000-01-00.0.stock.json
+0000:01:00.0  saved raw backup -> C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-appdata\nvtune\0000-01-00.0.stock.json
+0000:01:00.0  saved field profile -> C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-original-profile.json
+PS> nvtune save --device 0000:01:00.0 --output C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-original-raw.json
+0000:01:00.0  saved -> C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-original-raw.json
+PS> nvtune get FAW RFC CL --device 0000:01:00.0
+0000:01:00.0  FAW=24  RFC=157  CL=19
+Raw broadcast words:
+PS> nvtune dump --raw --device 0000:01:00.0
+0000:01:00.0  GP102 (Pascal, GTX 1080 Ti / Titan Xp)
+  [broadcast] base 0x9A0000
+    CONFIG0 @0x9A0290 = 0x16489D3A
+    CONFIG1 @0x9A0294 = 0x31260393
+    CONFIG2 @0x9A0298 = 0x55180800
+    CONFIG3 @0x9A029C = 0x2200314A
+    CONFIG4 @0x9A02A0 = 0x6D830032
+    CONFIG5 @0x9A02A4 = 0x747270B2
+Only tFAW +1 and tRFC +1; tCL unchanged
+GPU band: P2, 5508
+PS> nvtune set FAW=25 RFC=158 --device 0000:01:00.0
+0000:01:00.0  GP102 (Pascal)
+  [broadcast]
+  CONFIG0 @0x9A0290  0x16489D3A -> 0x16489E3A  [write]
+      RFC            157 -> 158
+  CONFIG3 @0x9A029C  0x2200314A -> 0x2200334A  [write]
+      FAW             24 -> 25
+      applied and verified
+  reminder: the driver reprograms these on p-state changes. Use 'nvtune daemon' to hold them.
+PS> nvtune save --device 0000:01:00.0 --profile C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-modified-profile.json --output C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-modified-raw.json
+0000:01:00.0  saved raw backup -> C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-modified-raw.json
+0000:01:00.0  saved field profile -> C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-modified-profile.json
+PS> nvtune get FAW RFC CL --device 0000:01:00.0
+0000:01:00.0  FAW=25  RFC=158  CL=19
+Fresh raw broadcast words:
+PS> nvtune dump --raw --device 0000:01:00.0
+0000:01:00.0  GP102 (Pascal, GTX 1080 Ti / Titan Xp)
+  [broadcast] base 0x9A0000
+    CONFIG0 @0x9A0290 = 0x16489E3A
+    CONFIG1 @0x9A0294 = 0x31260393
+    CONFIG2 @0x9A0298 = 0x55180800
+    CONFIG3 @0x9A029C = 0x2200334A
+    CONFIG4 @0x9A02A0 = 0x6D830032
+    CONFIG5 @0x9A02A4 = 0x747270B2
+GPU band: P2, 5508
+Explicit baseline restore before daemon test
+PS> nvtune restore --device 0000:01:00.0 --input C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-original-raw.json
+0000:01:00.0  restored from C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-original-raw.json (verified)
+PS> nvtune save --device 0000:01:00.0 --output C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-pre-daemon-raw.json
+0000:01:00.0  saved -> C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-pre-daemon-raw.json
+PS> nvtune get FAW RFC CL --device 0000:01:00.0
+0000:01:00.0  FAW=24  RFC=157  CL=19
+GPU band: P2, 5508
+**********************
+Windows PowerShell transcript end
+End time: 20260923051037
+**********************

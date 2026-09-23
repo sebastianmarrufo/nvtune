@@ -1,0 +1,403 @@
+{
+  "device": {
+    "slot": "0000:01:00.0",
+    "chip": "GP102 / TITAN Xp",
+    "driver": "582.66",
+    "pstate": "P2",
+    "memory_clock_mhz_reported": 5508
+  },
+  "helper_sha256": "af4e5fb9d975509f908046ac37f47d1cc752c397362a6ab6fb9ac232dcda4e21",
+  "screenshots_sha256": {
+    "01-cli-original.png": "5c457b82ae13ec98a640bafbf6825d2800e9ad70e073629eb9b6321806edc94f",
+    "02-cli-modified.png": "76e6a267211b9dd676cb8e82264e11f95136b776434e69368b9002fe7c61ea5c",
+    "03-cli-pre-daemon-restored.png": "532145f913bcd1653e3d26363cbcdf5e140e0ee94acfa043f3171ef942025ac5",
+    "04-cli-daemon-running.png": "d633e916518041f7c589ec384ca25e797ae7f4c63de167e0de9fe43533ca82cd",
+    "05-cli-daemon-restored.png": "b81c2f63677f0405446dd2c70bce20cc4d23f54e1ca560bce7079d8479eea17f"
+  },
+  "fields": {
+    "AOND": {
+      "baseline": 0,
+      "modified": 0,
+      "restored": 0
+    },
+    "CCDL": {
+      "baseline": 2,
+      "modified": 2,
+      "restored": 2
+    },
+    "CCDS": {
+      "baseline": 2,
+      "modified": 2,
+      "restored": 2
+    },
+    "CDLR": {
+      "baseline": 8,
+      "modified": 8,
+      "restored": 8
+    },
+    "CL": {
+      "baseline": 19,
+      "modified": 19,
+      "restored": 19
+    },
+    "FAW": {
+      "baseline": 24,
+      "modified": 25,
+      "restored": 24
+    },
+    "PDEN2PDEX": {
+      "baseline": 10,
+      "modified": 10,
+      "restored": 10
+    },
+    "PDEX": {
+      "baseline": 10,
+      "modified": 10,
+      "restored": 10
+    },
+    "R2W_BUS": {
+      "baseline": 5,
+      "modified": 5,
+      "restored": 5
+    },
+    "RAS": {
+      "baseline": 36,
+      "modified": 36,
+      "restored": 36
+    },
+    "RC": {
+      "baseline": 58,
+      "modified": 58,
+      "restored": 58
+    },
+    "RD_RCD": {
+      "baseline": 24,
+      "modified": 24,
+      "restored": 24
+    },
+    "REFRESH": {
+      "baseline": 6,
+      "modified": 6,
+      "restored": 6
+    },
+    "RFC": {
+      "baseline": 157,
+      "modified": 158,
+      "restored": 157
+    },
+    "RP": {
+      "baseline": 22,
+      "modified": 22,
+      "restored": 22
+    },
+    "RPRE": {
+      "baseline": 0,
+      "modified": 0,
+      "restored": 0
+    },
+    "RRD": {
+      "baseline": 6,
+      "modified": 6,
+      "restored": 6
+    },
+    "W2R_BUS": {
+      "baseline": 5,
+      "modified": 5,
+      "restored": 5
+    },
+    "WL": {
+      "baseline": 7,
+      "modified": 7,
+      "restored": 7
+    },
+    "WPRE": {
+      "baseline": 0,
+      "modified": 0,
+      "restored": 0
+    },
+    "WR": {
+      "baseline": 24,
+      "modified": 24,
+      "restored": 24
+    },
+    "WRCRC": {
+      "baseline": 11,
+      "modified": 11,
+      "restored": 11
+    },
+    "WR_RCD": {
+      "baseline": 18,
+      "modified": 18,
+      "restored": 18
+    }
+  },
+  "raw_registers": {
+    "broadcast": {
+      "CONFIG0": {
+        "baseline": "0x16489D3A",
+        "modified": "0x16489E3A",
+        "restored": "0x16489D3A"
+      },
+      "CONFIG1": {
+        "baseline": "0x31260393",
+        "modified": "0x31260393",
+        "restored": "0x31260393"
+      },
+      "CONFIG2": {
+        "baseline": "0x55180800",
+        "modified": "0x55180800",
+        "restored": "0x55180800"
+      },
+      "CONFIG3": {
+        "baseline": "0x2200314A",
+        "modified": "0x2200334A",
+        "restored": "0x2200314A"
+      },
+      "CONFIG4": {
+        "baseline": "0x6D830032",
+        "modified": "0x6D830032",
+        "restored": "0x6D830032"
+      },
+      "CONFIG5": {
+        "baseline": "0x747270B2",
+        "modified": "0x747270B2",
+        "restored": "0x747270B2"
+      },
+      "TIMING22": {
+        "baseline": "0x00000007",
+        "modified": "0x00000007",
+        "restored": "0x00000007"
+      }
+    },
+    "fbpa0": {
+      "CONFIG0": {
+        "baseline": "0x16489D3A",
+        "modified": "0x16489E3A",
+        "restored": "0x16489D3A"
+      },
+      "CONFIG1": {
+        "baseline": "0x31260393",
+        "modified": "0x31260393",
+        "restored": "0x31260393"
+      },
+      "CONFIG2": {
+        "baseline": "0x55180800",
+        "modified": "0x55180800",
+        "restored": "0x55180800"
+      },
+      "CONFIG3": {
+        "baseline": "0x2200314A",
+        "modified": "0x2200334A",
+        "restored": "0x2200314A"
+      },
+      "CONFIG4": {
+        "baseline": "0x6D830032",
+        "modified": "0x6D830032",
+        "restored": "0x6D830032"
+      },
+      "CONFIG5": {
+        "baseline": "0x747270B2",
+        "modified": "0x747270B2",
+        "restored": "0x747270B2"
+      },
+      "TIMING22": {
+        "baseline": "0x00000007",
+        "modified": "0x00000007",
+        "restored": "0x00000007"
+      }
+    },
+    "fbpa1": {
+      "CONFIG0": {
+        "baseline": "0x16489D3A",
+        "modified": "0x16489E3A",
+        "restored": "0x16489D3A"
+      },
+      "CONFIG1": {
+        "baseline": "0x31260393",
+        "modified": "0x31260393",
+        "restored": "0x31260393"
+      },
+      "CONFIG2": {
+        "baseline": "0x55180800",
+        "modified": "0x55180800",
+        "restored": "0x55180800"
+      },
+      "CONFIG3": {
+        "baseline": "0x2200314A",
+        "modified": "0x2200334A",
+        "restored": "0x2200314A"
+      },
+      "CONFIG4": {
+        "baseline": "0x6D830032",
+        "modified": "0x6D830032",
+        "restored": "0x6D830032"
+      },
+      "CONFIG5": {
+        "baseline": "0x747270B2",
+        "modified": "0x747270B2",
+        "restored": "0x747270B2"
+      },
+      "TIMING22": {
+        "baseline": "0x00000007",
+        "modified": "0x00000007",
+        "restored": "0x00000007"
+      }
+    },
+    "fbpa2": {
+      "CONFIG0": {
+        "baseline": "0x16489D3A",
+        "modified": "0x16489E3A",
+        "restored": "0x16489D3A"
+      },
+      "CONFIG1": {
+        "baseline": "0x31260393",
+        "modified": "0x31260393",
+        "restored": "0x31260393"
+      },
+      "CONFIG2": {
+        "baseline": "0x55180800",
+        "modified": "0x55180800",
+        "restored": "0x55180800"
+      },
+      "CONFIG3": {
+        "baseline": "0x2200314A",
+        "modified": "0x2200334A",
+        "restored": "0x2200314A"
+      },
+      "CONFIG4": {
+        "baseline": "0x6D830032",
+        "modified": "0x6D830032",
+        "restored": "0x6D830032"
+      },
+      "CONFIG5": {
+        "baseline": "0x747270B2",
+        "modified": "0x747270B2",
+        "restored": "0x747270B2"
+      },
+      "TIMING22": {
+        "baseline": "0x00000007",
+        "modified": "0x00000007",
+        "restored": "0x00000007"
+      }
+    },
+    "fbpa3": {
+      "CONFIG0": {
+        "baseline": "0x16489D3A",
+        "modified": "0x16489E3A",
+        "restored": "0x16489D3A"
+      },
+      "CONFIG1": {
+        "baseline": "0x31260393",
+        "modified": "0x31260393",
+        "restored": "0x31260393"
+      },
+      "CONFIG2": {
+        "baseline": "0x55180800",
+        "modified": "0x55180800",
+        "restored": "0x55180800"
+      },
+      "CONFIG3": {
+        "baseline": "0x2200314A",
+        "modified": "0x2200334A",
+        "restored": "0x2200314A"
+      },
+      "CONFIG4": {
+        "baseline": "0x6D830032",
+        "modified": "0x6D830032",
+        "restored": "0x6D830032"
+      },
+      "CONFIG5": {
+        "baseline": "0x747270B2",
+        "modified": "0x747270B2",
+        "restored": "0x747270B2"
+      },
+      "TIMING22": {
+        "baseline": "0x00000007",
+        "modified": "0x00000007",
+        "restored": "0x00000007"
+      }
+    },
+    "fbpa4": {
+      "CONFIG0": {
+        "baseline": "0x16489D3A",
+        "modified": "0x16489E3A",
+        "restored": "0x16489D3A"
+      },
+      "CONFIG1": {
+        "baseline": "0x31260393",
+        "modified": "0x31260393",
+        "restored": "0x31260393"
+      },
+      "CONFIG2": {
+        "baseline": "0x55180800",
+        "modified": "0x55180800",
+        "restored": "0x55180800"
+      },
+      "CONFIG3": {
+        "baseline": "0x2200314A",
+        "modified": "0x2200334A",
+        "restored": "0x2200314A"
+      },
+      "CONFIG4": {
+        "baseline": "0x6D830032",
+        "modified": "0x6D830032",
+        "restored": "0x6D830032"
+      },
+      "CONFIG5": {
+        "baseline": "0x747270B2",
+        "modified": "0x747270B2",
+        "restored": "0x747270B2"
+      },
+      "TIMING22": {
+        "baseline": "0x00000007",
+        "modified": "0x00000007",
+        "restored": "0x00000007"
+      }
+    },
+    "fbpa5": {
+      "CONFIG0": {
+        "baseline": "0x16489D3A",
+        "modified": "0x16489E3A",
+        "restored": "0x16489D3A"
+      },
+      "CONFIG1": {
+        "baseline": "0x31260393",
+        "modified": "0x31260393",
+        "restored": "0x31260393"
+      },
+      "CONFIG2": {
+        "baseline": "0x55180800",
+        "modified": "0x55180800",
+        "restored": "0x55180800"
+      },
+      "CONFIG3": {
+        "baseline": "0x2200314A",
+        "modified": "0x2200334A",
+        "restored": "0x2200314A"
+      },
+      "CONFIG4": {
+        "baseline": "0x6D830032",
+        "modified": "0x6D830032",
+        "restored": "0x6D830032"
+      },
+      "CONFIG5": {
+        "baseline": "0x747270B2",
+        "modified": "0x747270B2",
+        "restored": "0x747270B2"
+      },
+      "TIMING22": {
+        "baseline": "0x00000007",
+        "modified": "0x00000007",
+        "restored": "0x00000007"
+      }
+    }
+  },
+  "checks": {
+    "exactly_two_fields_changed": true,
+    "tcl_unchanged": true,
+    "only_config0_config3_changed_in_each_scope": true,
+    "final_49_raw_words_equal_baseline": true,
+    "final_23_fields_equal_baseline": true,
+    "daemon_ctrl_c_transcript_shows_restore": true
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "command": [
+    "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "-NoProfile",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-File",
+    "C:\\Users\\Administrator\\nvtune-profile-roundtrip\\tool\\tests\\manual\\profile-roundtrip-20260923\\daemon_visible.ps1"
+  ],
+  "console_pid": 7584,
+  "signal": "CTRL_C_EVENT",
+  "daemon_pid": 744,
+  "console_exit_code": 0
+}

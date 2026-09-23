@@ -1,0 +1,38 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260923051332
+Username: COPEGE\Administrator
+RunAs User: COPEGE\Administrator
+Configuration Name: 
+Machine: COPEGE (Microsoft Windows NT 10.0.19044.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture_postdaemon.ps1
+Process ID: 10008
+PSVersion: 5.1.19041.1682
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.1682
+BuildVersion: 10.0.19041.1682
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Fresh CLI read after daemon Ctrl-C; no nvtune process stayed running
+PS> nvtune save --device 0000:01:00.0 --profile postdaemon-profile.json --output postdaemon-raw.json
+0000:01:00.0  saved raw backup -> C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\postdaemon-raw.json
+0000:01:00.0  saved field profile -> C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\postdaemon-profile.json
+PS> nvtune get FAW RFC CL --device 0000:01:00.0
+0000:01:00.0  FAW=24  RFC=157  CL=19
+PS> nvtune dump --raw --device 0000:01:00.0
+0000:01:00.0  GP102 (Pascal, GTX 1080 Ti / Titan Xp)
+  [broadcast] base 0x9A0000
+    CONFIG0 @0x9A0290 = 0x16489D3A
+    CONFIG1 @0x9A0294 = 0x31260393
+    CONFIG2 @0x9A0298 = 0x55180800
+    CONFIG3 @0x9A029C = 0x2200314A
+    CONFIG4 @0x9A02A0 = 0x6D830032
+    CONFIG5 @0x9A02A4 = 0x747270B2
+Verified: all 49 raw words and 23 fields exactly match initial P2/5508 baseline.
+**********************
+Windows PowerShell transcript end
+End time: 20260923051332
+**********************
