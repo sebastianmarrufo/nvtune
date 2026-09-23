@@ -46,5 +46,27 @@ The build pulls the IOCTL contract header from `../driver/include`.
 
 ## Commands
 
-`list, fields, dump, get, set, save, restore, apply, daemon, probe, clocks,
+`list, fields, dump, get, set, save, restore, apply, daemon, probe,
 peek, poke, vbios`. Run `nvtune` with no arguments for the full usage.
+
+`save` writes a raw register backup for `restore` (by default in the tool's
+config directory). To also capture a field profile for `apply` or `daemon`,
+select one GPU and provide a separate profile path:
+
+```
+nvtune save --device 0000:08:00.0 --profile timings.json
+nvtune daemon --profile timings.json
+```
+
+The profile contains current documented, tunable timing fields as integer
+values. It records the source device, which `apply` and `daemon` use by
+default. Export requires the active partitions to agree with broadcast values;
+if they differ, a single profile cannot represent them and export stops.
+`--output backup.json` chooses a raw
+backup path, and `restore --input backup.json` restores it. A field profile is
+not a raw backup and cannot be used with `restore`.
+With `--profile` and no `--output`, the default stock backup is written only
+if it does not already exist, so a
+later profile capture cannot replace the original rollback values. Providing
+`--output` explicitly writes that raw backup path on each save. Profile export
+requires a recognized GPU chipset.

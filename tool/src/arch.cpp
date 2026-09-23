@@ -119,6 +119,7 @@ Arch identify(std::uint32_t boot0) {
     a.codename = it->second.codename;
     a.family   = it->second.family;
     a.series   = it->second.series;
+    a.known_chipset = true;
     a.layout   = (chipset >= 0x130) ? kModern : kLegacy;
     a.writes_expected = (a.family != "Ada");
     auto h = hardened().find(a.family);

@@ -9,6 +9,13 @@
 #include <fstream>
 #include <sstream>
 
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+
 namespace nvtune::json {
 
 const std::string& Value::as_string() const {
@@ -319,7 +326,16 @@ void write_file_atomic(const std::string& path, const Value& v) {
         f << v.dump(2) << "\n";
         if (!f) throw ParseError("write failed: " + tmp);
     }
-    if (std::rename(tmp.c_str(), path.c_str()) != 0) {
+    // Windows rename() refuses to replace an existing destination. Both raw
+    // backups and field profiles are saved repeatedly to the same path.
+#ifdef _WIN32
+    const bool replaced = ::MoveFileExA(tmp.c_str(), path.c_str(),
+                                         MOVEFILE_REPLACE_EXISTING |
+                                         MOVEFILE_WRITE_THROUGH) != 0;
+#else
+    const bool replaced = std::rename(tmp.c_str(), path.c_str()) == 0;
+#endif
+    if (!replaced) {
         std::remove(tmp.c_str());
         throw ParseError("cannot replace " + path);
     }

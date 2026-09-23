@@ -1,0 +1,75 @@
+{
+  "_format": "nvtune-backup-1",
+  "_taken": "2026-09-23T05:13:32",
+  "aperture_broadcast": "0x9A0000",
+  "boot0": "0x132000A1",
+  "chipset": "0x132",
+  "codename": "GP102",
+  "pci_id": "10de:1b02",
+  "registers": {
+    "broadcast": {
+      "CONFIG0": "0x16489D3A",
+      "CONFIG1": "0x31260393",
+      "CONFIG2": "0x55180800",
+      "CONFIG3": "0x2200314A",
+      "CONFIG4": "0x6D830032",
+      "CONFIG5": "0x747270B2",
+      "TIMING22": "0x00000007"
+    },
+    "fbpa0": {
+      "CONFIG0": "0x16489D3A",
+      "CONFIG1": "0x31260393",
+      "CONFIG2": "0x55180800",
+      "CONFIG3": "0x2200314A",
+      "CONFIG4": "0x6D830032",
+      "CONFIG5": "0x747270B2",
+      "TIMING22": "0x00000007"
+    },
+    "fbpa1": {
+      "CONFIG0": "0x16489D3A",
+      "CONFIG1": "0x31260393",
+      "CONFIG2": "0x55180800",
+      "CONFIG3": "0x2200314A",
+      "CONFIG4": "0x6D830032",
+      "CONFIG5": "0x747270B2",
+      "TIMING22": "0x00000007"
+    },
+    "fbpa2": {
+      "CONFIG0": "0x16489D3A",
+      "CONFIG1": "0x31260393",
+      "CONFIG2": "0x55180800",
+      "CONFIG3": "0x2200314A",
+      "CONFIG4": "0x6D830032",
+      "CONFIG5": "0x747270B2",
+      "TIMING22": "0x00000007"
+    },
+    "fbpa3": {
+      "CONFIG0": "0x16489D3A",
+      "CONFIG1": "0x31260393",
+      "CONFIG2": "0x55180800",
+      "CONFIG3": "0x2200314A",
+      "CONFIG4": "0x6D830032",
+      "CONFIG5": "0x747270B2",
+      "TIMING22": "0x00000007"
+    },
+    "fbpa4": {
+      "CONFIG0": "0x16489D3A",
+      "CONFIG1": "0x31260393",
+      "CONFIG2": "0x55180800",
+      "CONFIG3": "0x2200314A",
+      "CONFIG4": "0x6D830032",
+      "CONFIG5": "0x747270B2",
+      "TIMING22": "0x00000007"
+    },
+    "fbpa5": {
+      "CONFIG0": "0x16489D3A",
+      "CONFIG1": "0x31260393",
+      "CONFIG2": "0x55180800",
+      "CONFIG3": "0x2200314A",
+      "CONFIG4": "0x6D830032",
+      "CONFIG5": "0x747270B2",
+      "TIMING22": "0x00000007"
+    }
+  },
+  "slot": "0000:01:00.0"
+}

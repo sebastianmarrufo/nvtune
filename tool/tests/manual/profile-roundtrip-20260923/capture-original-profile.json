@@ -1,0 +1,30 @@
+{
+  "_format": "nvtune-profile-1",
+  "fields": {
+    "AOND": 0,
+    "CCDL": 2,
+    "CCDS": 2,
+    "CDLR": 8,
+    "CL": 19,
+    "FAW": 24,
+    "PDEN2PDEX": 10,
+    "PDEX": 10,
+    "R2W_BUS": 5,
+    "RAS": 36,
+    "RC": 58,
+    "RD_RCD": 24,
+    "REFRESH": 6,
+    "RFC": 157,
+    "RP": 22,
+    "RPRE": 0,
+    "RRD": 6,
+    "W2R_BUS": 5,
+    "WL": 7,
+    "WPRE": 0,
+    "WR": 24,
+    "WRCRC": 11,
+    "WR_RCD": 18
+  },
+  "name": "0000:01:00.0 timing profile",
+  "slot": "0000:01:00.0"
+}

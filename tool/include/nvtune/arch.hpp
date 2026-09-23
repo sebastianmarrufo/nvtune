@@ -49,6 +49,7 @@ struct Arch {
     std::string   codename;
     std::string   family;
     std::string   series;
+    bool          known_chipset = false;
     Layout        layout = kModern;
     // Whether runtime writes are expected to stick. On the newest parts the
     // PMU/GSP microcontrollers own memory reclocking behind signed firmware

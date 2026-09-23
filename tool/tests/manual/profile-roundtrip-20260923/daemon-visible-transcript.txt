@@ -1,0 +1,29 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260923051309
+Username: COPEGE\Administrator
+RunAs User: COPEGE\Administrator
+Configuration Name: 
+Machine: COPEGE (Microsoft Windows NT 10.0.19044.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\daemon_visible.ps1
+Process ID: 7584
+PSVersion: 5.1.19041.1682
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.1682
+BuildVersion: 10.0.19041.1682
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+PS> nvtune daemon --profile C:\Users\Administrator\nvtune-profile-roundtrip\tool\tests\manual\profile-roundtrip-20260923\capture-modified-profile.json --interval 1 --verbose
+holding 23 field(s) on 1 GPU(s), re-applying every 1s. Ctrl-C to stop and restore.
+  0000:01:00.0: re-asserted RFC FAW
+
+restoring stock values...
+  0000:01:00.0: restored
+PS>TerminatingError(): "The pipeline has been stopped."
+**********************
+Windows PowerShell transcript end
+End time: 20260923051311
+**********************

@@ -86,6 +86,8 @@ public:
 
     // -- backup / restore -------------------------------------------------
     void backup(const std::string& path, bool include_optional = true) const;
+    // Capture only documented, tunable timing fields for apply/daemon profiles.
+    Assignments profile_fields(Scope scope) const;
     std::vector<std::string> restore(const std::string& path,
                                      bool verify = true);
 

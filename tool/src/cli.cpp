@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -181,6 +182,13 @@ std::string default_backup_path(const Gpu& g) {
 
 bool file_exists(const std::string& p) { return platform::file_exists(p); }
 
+bool same_path(const std::string& a, const std::string& b) {
+    std::error_code ec;
+    if (std::filesystem::equivalent(a, b, ec)) return true;
+    return to_upper(std::filesystem::absolute(a).lexically_normal().string()) ==
+           to_upper(std::filesystem::absolute(b).lexically_normal().string());
+}
+
 std::string ensure_stock_backup(const Gpu& g) {
     const std::string path = default_backup_path(g);
     if (!file_exists(path)) {
@@ -261,8 +269,16 @@ void print_ops(const std::vector<WriteOp>& ops) {
 
 json::Value load_profile(const std::string& path) {
     json::Value doc = json::parse_file(path);
+    if (doc.str_or("_format", "") == "nvtune-backup-1") {
+        die(path + " is a raw backup for 'nvtune restore'. Create a field "
+            "profile with 'nvtune save --profile PATH'.");
+    }
     if (!doc.contains("fields")) {
-        die(path + ": profile has no 'fields' object");
+        die(path + ": profile needs a 'fields' object. Create one with "
+            "'nvtune save --profile PATH'.");
+    }
+    if (!doc.at("fields").is_object()) {
+        die(path + ": profile 'fields' must be an object of FIELD: VALUE entries");
     }
     return doc;
 }
@@ -274,6 +290,22 @@ Assignments profile_assignments(const json::Value& doc) {
         items.push_back(k + "=" + std::to_string(json::as_u32(v)));
     }
     return parse_assignments(items);
+}
+
+Options profile_targets(const json::Value& doc, const Options& requested) {
+    Options target = requested;
+    if (const json::Value* slot = doc.get("slot")) {
+        const std::string saved_slot = slot->as_string();
+        if (target.devices.empty()) {
+            target.devices.push_back(saved_slot);
+        } else if (target.devices.size() != 1 ||
+                   find(target.devices.front()).slot != saved_slot) {
+            die("profile was captured on " + saved_slot +
+                "; select that device or remove 'slot' from the profile "
+                "to use it on another GPU");
+        }
+    }
+    return target;
 }
 
 // ------------------------------------------------------------ commands
@@ -463,6 +495,7 @@ int cmd_set(const Options& o) {
 int cmd_apply(const Options& o) {
     if (o.positional.empty()) die("apply needs a profile path");
     json::Value doc = load_profile(o.positional[0]);
+    Options target = profile_targets(doc, o);
     std::cout << "profile: " << doc.str_or("name", o.positional[0]) << "\n";
     const std::string d = doc.str_or("description", "");
     if (!d.empty()) std::cout << "  " << d << "\n";
@@ -473,14 +506,59 @@ int cmd_apply(const Options& o) {
         err("profile has no fields to apply (is it the template?)");
         return 1;
     }
-    return do_set(o, a);
+    return do_set(target, a);
 }
 
 int cmd_save(const Options& o) {
     need_root();
-    for (auto& g : open_targets(o, false)) {
+    if (!o.profile.empty() && (o.fbpa.has_value() || o.all_fbpa)) {
+        die("save --profile requires uniform broadcast timing fields; "
+            "partition-scoped profile export is not supported");
+    }
+    auto gpus = open_targets(o, false);
+    if (gpus.size() > 1 && (!o.output.empty() || !o.profile.empty())) {
+        die("a single --output or --profile path cannot hold multiple GPUs; "
+            "select one with --device");
+    }
+    for (auto& g : gpus) {
         const std::string path =
             o.output.empty() ? default_backup_path(*g) : o.output;
+        if (!o.profile.empty()) {
+            if (same_path(path, o.profile)) {
+                die("--profile and the raw backup destination must be "
+                    "different paths");
+            }
+            const Assignments fields = g->profile_fields(kBroadcast);
+            for (unsigned i : g->active_fbpas()) {
+                if (g->profile_fields(i) != fields) {
+                    die(g->dev().slot + ": timing fields differ between "
+                        "broadcast and FBPA" + std::to_string(i) +
+                        "; a single profile cannot represent both");
+                }
+            }
+            json::Object values;
+            for (const auto& [name, value] : fields) {
+                values[name] = json::Value(static_cast<long long>(value));
+            }
+            json::Object profile;
+            profile["_format"] = json::Value("nvtune-profile-1");
+            profile["name"] = json::Value(g->dev().slot + " timing profile");
+            profile["slot"] = json::Value(g->dev().slot);
+            profile["fields"] = json::Value(std::move(values));
+            // The default file is the first stock snapshot. A later profile
+            // capture may contain tuned values and must not replace it.
+            if (o.output.empty()) {
+                ensure_stock_backup(*g);
+            } else {
+                g->backup(path, true);
+            }
+            json::write_file_atomic(o.profile, json::Value(std::move(profile)));
+            std::cout << g->dev().slot << "  saved raw backup -> " << path
+                      << "\n";
+            std::cout << g->dev().slot << "  saved field profile -> "
+                      << o.profile << "\n";
+            continue;
+        }
         g->backup(path, true);
         std::cout << g->dev().slot << "  saved -> " << path << "\n";
     }
@@ -515,10 +593,12 @@ int cmd_restore(const Options& o) {
 }
 
 int cmd_daemon(const Options& o) {
-    need_root();
+    Options target = o;
     Assignments assignments;
     if (!o.profile.empty()) {
-        assignments = profile_assignments(load_profile(o.profile));
+        const json::Value doc = load_profile(o.profile);
+        target = profile_targets(doc, o);
+        assignments = profile_assignments(doc);
     } else {
         assignments = parse_assignments(o.positional);
     }
@@ -527,9 +607,11 @@ int cmd_daemon(const Options& o) {
         return 1;
     }
 
+    need_root();
+
     platform::install_interrupt_handler(on_signal);
 
-    auto gpus = open_targets(o, true);
+    auto gpus = open_targets(target, true);
     std::map<std::string, std::string> backups;
     for (auto& g : gpus) backups[g->dev().slot] = ensure_stock_backup(*g);
 
@@ -541,7 +623,7 @@ int cmd_daemon(const Options& o) {
     while (!g_stop.load()) {
         for (auto& g : gpus) {
             std::vector<Scope> scopes;
-            if (o.all_fbpa) {
+            if (target.all_fbpa) {
                 for (unsigned i : g->active_fbpas()) scopes.push_back(i);
             } else {
                 scopes.push_back(kBroadcast);
@@ -823,8 +905,8 @@ commands:
   dump                      decode current timings
   get FIELD...              read specific fields
   set FIELD=VALUE...        write fields
-  save                      snapshot all timing registers to JSON
-  restore                   write a snapshot back
+  save                      snapshot raw registers for restore
+  restore                   write a raw backup back
   apply PROFILE.json        apply a JSON profile
   daemon [FIELD=VALUE...]   hold values against driver reprogramming
   probe                     dump or watch raw FBPA words
@@ -837,16 +919,20 @@ common options:
                         Default: all NVIDIA GPUs.
       --fbpa N          target one partition instead of the broadcast aperture
       --all-fbpa        target every active partition individually
-  -o, --output PATH     save destination
+  -o, --output PATH     raw backup destination for save
   -i, --input PATH      restore source
 
 dump options:      --raw  --optional
+save options:      --profile PATH  also export uniform tunable timing fields
 daemon options:    --profile PATH  --interval SECONDS  -v/--verbose
 probe options:     --start OFF  --length BYTES  --watch SECONDS
 vbios options:     --rom FILE  --prom  --full  --columns A,B,C
 
 Writing to memory-controller registers can hang the machine and corrupt VRAM.
 A first write snapshots stock values; use 'restore' to roll back.
+Save --profile writes a field profile for apply/daemon plus a raw backup
+for restore. Active partitions must agree with broadcast timing fields.
+The captured device is recorded; partition-scoped export is unsupported.
 )";
 }
 
